@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Test Jig Runner</title>
+</head>
+<body>
+  <h1>Test Jig Runner</h1>
+  
+  <h2>Select Protocol and Device</h2>
+  <label for="protocol">Protocol:</label>
+  <select id="protocol" onchange="updateDevices()">
+    <option value="i2c">I2C</option>
+    <option value="spi">SPI</option>
+    <option value="uart">UART</option>
+    <option value="pwm">PWM</option>
+  </select>
+  
+  <label for="device">Device:</label>
+  <select id="device" onchange="fetchPinConnection()">
+    <!-- Options will update based on protocol -->
+  </select>
+  
+  <h3>Pin Connections:</h3>
+  <pre id="pinOutput"></pre>
+  
+  <h2>Run Test:</h2>
+  <button onclick="runTest()">Run Test</button>
+  <pre id="testOutput"></pre>
+  
+  <script>
+    const deviceOptions = {
+      "i2c": [
+        { value: "bh1750", label: "BH1750" },
+        { value: "oled", label: "OLED" },
+        { value: "mlx90614", label: "MLX90614" }
+      ],
+      "spi": [
+        { value: "sd-card", label: "SD Card Module" },
+        { value: "oled", label: "SPI OLED" }
+      ],
+      "uart": [
+        { value: "pm sensor", label: "PM Sensor" }
+      ],
+      "pwm": [
+        { value: "led-fading", label: "LED(Fading)" },
+        { value: "servo motor", label: "Servo Motor" },
+        { value: "rgb led", label: "RGB LED" }
+      ]
+    };
+
+    function updateDevices() {
+      const protocol = document.getElementById("protocol").value;
+      const deviceSelect = document.getElementById("device");
+      deviceSelect.innerHTML = "";
+      if (deviceOptions[protocol]) {
+        deviceOptions[protocol].forEach(opt => {
+          const optionElem = document.createElement("option");
+          optionElem.value = opt.value;
+          optionElem.text = opt.label;
+          deviceSelect.appendChild(optionElem);
+        });
+        fetchPinConnection(); // Update pin connections for the default device.
+      }
+    }
+
+    function fetchPinConnection() {
+      const protocol = document.getElementById("protocol").value;
+      const device = document.getElementById("device").value;
+      fetch(`/pin-connection/${protocol}/${encodeURIComponent(device)}`)
+        .then(response => response.json())
+        .then(data => {
+          if(data.error){
+            document.getElementById('pinOutput').textContent = data.error;
+          } else {
+            document.getElementById('pinOutput').textContent = JSON.stringify(data.pin_connections, null, 2);
+          }
+        });
+    }
+
+    function runTest() {
+      const protocol = document.getElementById("protocol").value;
+      const device = document.getElementById("device").value;
+      fetch(`/run-test/${protocol}/${encodeURIComponent(device)}`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('testOutput').textContent = data.result;
+        });
+    }
+
+    // Initialize device options on page load.
+    updateDevices();
+  </script>
+</body>
+</html>
