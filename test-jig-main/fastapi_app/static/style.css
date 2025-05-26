@@ -1,0 +1,107 @@
+body {
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+    background: #f0f2f5;
+    color: #333;
+    /* border: 5px solid red;  temporary test rule for visual confirmation */
+}
+
+header {
+    background-color: #4a90e2;
+    color: #fff;
+    padding: 1rem 0;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.container {
+    background-color: #f0f2f5; /* Changed to match the body background */
+    max-width: 800px;
+    margin: 2rem auto; /* Changed to center the container */
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: none; /* Removed shadow for uniform appearance */
+}
+
+section {
+    margin-bottom: 2rem;
+}
+
+h1, h2, h3 {
+    margin-top: 0;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+select {
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1.2rem;
+}
+
+/* Override button styles */
+button {
+    width: auto;
+    display: inline-block;
+    margin: 0 0.5rem;
+    background-color: #0000FF; /* Blue background */
+    color: white;              /* White text */
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+select:focus, button:focus {
+    outline: none;
+    border-color: #4a90e2;
+}
+
+button:hover {
+    background-color: #008000; /* Green background on hover */
+    transform: scale(1.05);    /* Enlarge button on hover */
+}
+
+pre {
+    background: #f7f7f7;
+    padding: 1rem;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+  
+footer {
+    text-align: center;
+    padding: 1rem;
+    background-color: #4a90e2;
+    color: #fff;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+}
+/* ...existing CSS... */
+.protocol-bubble {
+  border: 2px solid #4a90e2;
+  border-radius: 50%;
+  background-color: #ADD8E6; /* Changed to light blue */
+  color: white;              /* White text */
+  font-weight: bold;         /* Bold text */
+  padding: 10px 15px;
+  margin: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.protocol-bubble.active {
+  background-color: #4a90e2;
+  color: white;
+  font-weight: bold;
+}

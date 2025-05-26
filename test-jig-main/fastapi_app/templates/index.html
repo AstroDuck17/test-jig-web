@@ -3,32 +3,96 @@
 <head>
   <meta charset="UTF-8">
   <title>Test Jig Runner</title>
+  <link rel="stylesheet" href="../static/style.css">
+  <style>
+    body, .container {
+      margin: 0 auto;
+      text-align: center;
+    }
+    /* Updated styles for the device buttons */
+    .device-button {
+      margin: 5px;
+      padding: 12px 24px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      font-family: 'Helvetica', sans-serif;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+    }
+    .device-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+    }
+    .device-button.active {
+      background: linear-gradient(135deg, #1e90ff, #00bfff);
+      border: 3px solid gold;  /* Added border for higher visibility */
+      transform: scale(1.05);   /* Slightly enlarge the active button */
+      box-shadow: 0 8px 12px rgba(0,0,0,0.2);  /* Enhanced shadow effect */
+    }
+    /* New styles for the pin connections table */
+    .pin-table {
+      margin: 20px auto;       /* center the table horizontally */
+      border-collapse: collapse;
+      width: 80%;              /* make table larger */
+    }
+    .pin-table th,
+    .pin-table td {
+      border: 1px solid #ccc;  /* add a border */
+      padding: 10px;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
-  <h1>Test Jig Runner</h1>
-  
-  <h2>Select Protocol and Device</h2>
-  <label for="protocol">Protocol:</label>
-  <select id="protocol" onchange="updateDevices()">
-    <option value="i2c">I2C</option>
-    <option value="spi">SPI</option>
-    <option value="uart">UART</option>
-    <option value="pwm">PWM</option>
-  </select>
-  
-  <label for="device">Device:</label>
-  <select id="device" onchange="fetchPinConnection()">
-    <!-- Options will update based on protocol -->
-  </select>
-  
-  <h3>Pin Connections:</h3>
-  <pre id="pinOutput"></pre>
-  
-  <h2>Run Test:</h2>
-  <button onclick="runTest()">Run Test</button>
-  <pre id="testOutput"></pre>
-  
+  <header>
+    <h1>Test Jig Runner</h1>
+  </header>
+  <main class="container">
+    <section id="selection">
+      <h2>Select Protocol</h2>
+      <!-- Protocol bubbles -->
+      <div id="protocol-selection">
+        <button type="button" class="protocol-bubble" data-protocol="i2c">I2C</button>
+        <button type="button" class="protocol-bubble" data-protocol="spi">SPI</button>
+        <button type="button" class="protocol-bubble" data-protocol="uart">UART</button>
+        <button type="button" class="protocol-bubble" data-protocol="pwm">PWM</button>
+      </div>
+      <h2>Select Device</h2>
+      <!-- Device buttons container instead of dropdown -->
+      <div id="device-selection"></div>
+    </section>
+    <section id="pin-section">
+      <h3>Pin Connections:</h3>
+      <div id="pinOutput" class="pin-display" style="display: none;"></div>
+    </section>
+    <section id="test-section">
+      <h2>Run Test</h2>
+      <button onclick="runTest()">Run Test</button>
+      <pre id="testOutput"></pre>
+    </section>
+  </main>
+  <footer>
+    <p>&copy; 2025 Test Jig Runner</p>
+  </footer>
   <script>
+    // Set default selected protocol and device to empty
+    let selectedProtocol = "";
+    let selectedDevice = "";
+
+    document.querySelectorAll('.protocol-bubble').forEach(button => {
+      button.addEventListener('click', function() {
+        selectedProtocol = this.getAttribute('data-protocol');
+        // Clear existing active styling for protocol bubbles
+        document.querySelectorAll('.protocol-bubble').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        updateDevices();
+      });
+    });
+
     const deviceOptions = {
       "i2c": [
         { value: "bh1750", label: "BH1750" },
@@ -50,46 +114,122 @@
     };
 
     function updateDevices() {
-      const protocol = document.getElementById("protocol").value;
-      const deviceSelect = document.getElementById("device");
-      deviceSelect.innerHTML = "";
-      if (deviceOptions[protocol]) {
-        deviceOptions[protocol].forEach(opt => {
-          const optionElem = document.createElement("option");
-          optionElem.value = opt.value;
-          optionElem.text = opt.label;
-          deviceSelect.appendChild(optionElem);
+      const deviceContainer = document.getElementById("device-selection");
+      deviceContainer.innerHTML = "";
+      selectedDevice = ""; // clear previously selected device
+      if (selectedProtocol && deviceOptions[selectedProtocol]) {
+        deviceOptions[selectedProtocol].forEach(opt => {
+          const btn = document.createElement("button");
+          btn.className = "device-button";
+          btn.textContent = opt.label;
+          btn.value = opt.value;
+          btn.addEventListener("click", function() {
+            selectedDevice = this.value;
+            // update active state for device buttons
+            document.querySelectorAll('.device-button').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            fetchPinConnection();
+          });
+          deviceContainer.appendChild(btn);
         });
-        fetchPinConnection(); // Update pin connections for the default device.
+        // Optionally, auto-select the first device
+        if (deviceOptions[selectedProtocol].length > 0) {
+          const firstButton = deviceContainer.querySelector("button");
+          firstButton.click();
+        }
+      } else {
+        document.getElementById('pinOutput').innerHTML = "";
+        document.getElementById('pinOutput').style.display = "none";
       }
     }
 
     function fetchPinConnection() {
-      const protocol = document.getElementById("protocol").value;
-      const device = document.getElementById("device").value;
-      fetch(`/pin-connection/${protocol}/${encodeURIComponent(device)}`)
-        .then(response => response.json())
-        .then(data => {
-          if(data.error){
-            document.getElementById('pinOutput').textContent = data.error;
-          } else {
-            document.getElementById('pinOutput').textContent = JSON.stringify(data.pin_connections, null, 2);
-          }
-        });
+      if (!selectedProtocol || !selectedDevice) {
+        document.getElementById('pinOutput').style.display = "none";
+        return;
+      }
+      let rows = [], header = "";
+      if (selectedProtocol === "i2c") {
+        header = "I2C port";
+        rows = [
+          { pin: "VCC", port: "Rpi VCC" },
+          { pin: "GND", port: "Rpi GND" },
+          { pin: "SCL", port: "PIN 1 (I2C PORT)" },
+          { pin: "SDA", port: "PIN 2 (I2C PORT)" }
+        ];
+      } else if (selectedProtocol === "spi") {
+        header = "SPI port";
+        if (selectedDevice === "sd-card") {
+          rows = [
+            { pin: "VCC", port: "Rpi VCC" },
+            { pin: "GND", port: "Rpi GND" },
+            { pin: "MISO", port: "PIN X (SPI PORT)" },
+            { pin: "MOSI", port: "PIN Y (SPI PORT)" },
+            { pin: "SCK", port: "PIN Z (SPI PORT)" },
+            { pin: "CS", port: "PIN W (SPI PORT)" }
+          ];
+        } else if (selectedDevice === "oled") {
+          rows = [
+            { pin: "VCC", port: "Rpi VCC" },
+            { pin: "GND", port: "Rpi GND" },
+            { pin: "SCK", port: "PIN 3 (SPI PORT)" },
+            { pin: "SDA", port: "PIN 2 (SPI PORT)" },
+            { pin: "RES", port: "PIN 6 (SPI PORT)" },
+            { pin: "DC", port: "PIN 5 (SPI PORT)" },
+            { pin: "CS", port: "PIN 4 (SPI PORT)" }
+          ];
+        }
+      } else if (selectedProtocol === "uart") {
+        header = "UART port";
+        rows = [
+          { pin: "VCC", port: "Rpi VCC" },
+          { pin: "GND", port: "Rpi GND" },
+          { pin: "RX",  port: "PIN 1 (UART PORT)" },
+          { pin: "TX",  port: "PIN 2 (UART PORT)" }
+        ];
+      } else if (selectedProtocol === "pwm") {
+        header = "PWM port";
+        if (selectedDevice === "led-fading") {
+          rows = [
+            { pin: "LED", port: "PIN 1 (PWM PORT)" },
+            { pin: "GND", port: "Rpi GND" }
+          ];
+        } else if (selectedDevice === "servo motor") {
+          rows = [
+            { pin: "VCC",    port: "Rpi VCC" },
+            { pin: "GND",    port: "Rpi GND" },
+            { pin: "Signal", port: "PIN 4 (PWM PORT)" }
+          ];
+        } else if (selectedDevice === "rgb led") {
+          rows = [
+            { pin: "R",    port: "PIN 1 (PWM PORT)" },
+            { pin: "B",    port: "PIN 2 (PWM PORT)" },
+            { pin: "G",    port: "PIN 3 (PWM PORT)" },
+            { pin: "GND",  port: "Rpi GND" }
+          ];
+        }
+      }
+      let tableHTML = `<table class="pin-table"><thead><tr><th>pin</th><th>${header}</th></tr></thead><tbody>`;
+      rows.forEach(row => {
+        tableHTML += `<tr><td>${row.pin}</td><td>${row.port}</td></tr>`;
+      });
+      tableHTML += '</tbody></table>';
+      const pinOutput = document.getElementById('pinOutput');
+      pinOutput.innerHTML = tableHTML;
+      pinOutput.style.display = "block";
     }
 
     function runTest() {
-      const protocol = document.getElementById("protocol").value;
-      const device = document.getElementById("device").value;
-      fetch(`/run-test/${protocol}/${encodeURIComponent(device)}`, { method: 'POST' })
+      // Use selectedProtocol and selectedDevice for running tests
+      if (!selectedProtocol || !selectedDevice) return;
+      fetch(`/run-test/${selectedProtocol}/${encodeURIComponent(selectedDevice)}`, { method: 'POST' })
         .then(response => response.json())
         .then(data => {
           document.getElementById('testOutput').textContent = data.result;
         });
     }
 
-    // Initialize device options on page load.
-    updateDevices();
+    // Initially do not update devices until a protocol is clicked.
   </script>
 </body>
 </html>
