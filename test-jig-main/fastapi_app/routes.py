@@ -2,6 +2,8 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from lib.pin_details import PIN_CONNECTION
+import io, sys
+import board  # for DHTSensor in GPIO section
 
 router = APIRouter()
 templates = Jinja2Templates(directory="fastapi_app/templates")
@@ -24,6 +26,18 @@ PIN_MAPPING = {
         "led-fading": "LED_FADE",
         "servo motor": "Servo Motor",
         "rgb led": "RGB LED"
+    },
+    "adc": {
+        "pot": "Potentiometer",
+        "tds": "tds",
+        "ldr": "ldr"
+    },
+    "gpio": {
+        "led": "LED",
+        "button": "BUTTON",
+        "ultrasonic sensor": "ultrasonic sensor",
+        "dht11": "DHT11",
+        "ds18b20": "DS18B20"
     }
 }
 
@@ -44,9 +58,62 @@ async def get_pin_connection(protocol: str, device: str):
 
 @router.post("/run-test/{protocol}/{device}")
 async def run_test(protocol: str, device: str):
-    result = f"(Test output for {protocol} - {device} would appear here)"
-    if protocol.lower() in PIN_MAPPING and device.lower() in PIN_MAPPING[protocol.lower()]:
-        device_name = PIN_MAPPING[protocol.lower()][device.lower()]
-        pin = PIN_CONNECTION(device_name)
-        result = f"Pin Connections: {pin.pin_connections}\n" + result
-    return {"result": result}
+    # Capture output from the test function
+    old_stdout = sys.stdout
+    sys.stdout = mystdout = io.StringIO()
+    protocol_lower = protocol.lower()
+    device_lower = device.lower()
+    try:
+        if protocol_lower == "i2c":
+            if device_lower == "bh1750":
+                from lib.I2C.BH1750 import BH1750
+                BH1750().activate_cli()
+            elif device_lower == "oled":
+                from lib.I2C.i2c_oled import I2C_OLED
+                I2C_OLED().activate_cli()
+            elif device_lower == "mlx90614":
+                from lib.I2C.mlx90614 import MLX90614
+                MLX90614().activate_cli()
+            else:
+                print("Unknown I2C device")
+        elif protocol_lower == "spi":
+            if device_lower == "sd-card":
+                print("(Test for SD Card Module not implemented)")
+            elif device_lower == "oled":
+                from lib.SPI.spi_oled import SPI_OLED
+                SPI_OLED().activate_cli(image_path="c.bmp")
+            else:
+                print("Unknown SPI device")
+        elif protocol_lower == "uart":
+            if device_lower == "pm sensor":
+                from lib.UART.PM_Sensor import SDS011
+                SDS011().activate_cli()
+            else:
+                print("Unknown UART device")
+        elif protocol_lower == "pwm":
+            if device_lower == "led-fading":
+                from lib.PWM.fade import LedFader
+                LedFader().activate_cli()    # Fixed: call activate_cli()
+            elif device_lower == "servo motor":
+                from lib.PWM.servo import ServoMotor
+                ServoMotor().activate_cli()
+            elif device_lower == "rgb led":
+                from lib.PWM.rgb import RGBLED
+                RGBLED().activate_cli()
+            else:
+                print("Unknown PWM device")
+        elif protocol_lower == "adc":
+            print("ADC test not implemented")
+        elif protocol_lower == "gpio":
+            if device_lower == "button":
+                from lib.GPIO.button import ButtonController
+                ButtonController(button_pin=5).activate_cli()
+            else:
+                print("Unknown GPIO device")
+        else:
+            print("Unknown protocol")
+    except Exception as e:
+        print(f"Error: {str(e)}")
+    finally:
+        sys.stdout = old_stdout
+    return {"result": mystdout.getvalue()}

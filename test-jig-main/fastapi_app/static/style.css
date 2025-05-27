@@ -1,13 +1,17 @@
 body {
     margin: 0;
     font-family: 'Roboto', sans-serif;
-    background: #f0f2f5;
-    color: #333;
-    /* border: 5px solid red;  temporary test rule for visual confirmation */
+    background: #121212; /* Dark background */
+    color: #EEEEEE;     /* Light text */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;  /* Ensure full viewport height */
+    font-size: 1.125rem; /* Increased base font size */
 }
 
 header {
-    background-color: #4a90e2;
+    /* background-color: #5D3FD3; Dark violet header */
+    background-color: #8A2BE2;
     color: #fff;
     padding: 1rem 0;
     text-align: center;
@@ -15,12 +19,17 @@ header {
 }
 
 .container {
-    background-color: #f0f2f5; /* Changed to match the body background */
+    background-color: #1e1e1e; /* Dark container */
     max-width: 800px;
     margin: 2rem auto; /* Changed to center the container */
     padding: 2rem;
     border-radius: 8px;
     box-shadow: none; /* Removed shadow for uniform appearance */
+}
+
+/* New rule to allow main content to grow */
+main.container {
+    flex: 1;
 }
 
 section {
@@ -29,6 +38,16 @@ section {
 
 h1, h2, h3 {
     margin-top: 0;
+}
+
+h1 {
+    font-size: 2.5rem;  /* Larger main heading */
+}
+h2 {
+    font-size: 2rem;    /* Larger sub-heading */
+}
+h3 {
+    font-size: 1.75rem; /* Larger sub-heading */
 }
 
 .form-group {
@@ -44,9 +63,11 @@ label {
 select {
     width: 100%;
     padding: 1rem;
-    border: 1px solid #ccc;
+    border: 1px solid #8A2BE2;
     border-radius: 4px;
     font-size: 1.2rem;
+    background-color: #1e1e1e;
+    color: #EEEEEE;
 }
 
 /* Override button styles */
@@ -54,54 +75,69 @@ button {
     width: auto;
     display: inline-block;
     margin: 0 0.5rem;
-    background-color: #0000FF; /* Blue background */
+    background-color: #8A2BE2; /* Violet button */
     color: white;              /* White text */
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
+.device-button {
+    /* ...existing code... */
+    font-size: 1.25rem;  /* Increased text size */
+    padding: 14px 28px;  /* Increased padding */
+    /* ...existing code... */
+}
+
 select:focus, button:focus {
     outline: none;
-    border-color: #4a90e2;
+    border-color: #8A2BE2;
 }
 
 button:hover {
-    background-color: #008000; /* Green background on hover */
+    background-color: #7A1DB4; /* Darker violet on hover */
     transform: scale(1.05);    /* Enlarge button on hover */
 }
 
 pre {
-    background: #f7f7f7;
+    background: #2e2e2e;  /* Dark background */
+    color: #EEEEEE;       /* Light text */
     padding: 1rem;
     border-radius: 4px;
     overflow-x: auto;
+    font-size: 1rem;     /* Adjust test output font size if needed */
 }
   
 footer {
     text-align: center;
     padding: 1rem;
-    background-color: #4a90e2;
+    background-color: #8A2BE2;  /* Violet */
     color: #fff;
-    position: relative;
-    bottom: 0;
-    width: 100%;
+    box-sizing: border-box;
+    width: 100%;   /* Ensure full width */
+    margin: 0;     /* Remove auto margins */
 }
+
 /* ...existing CSS... */
 .protocol-bubble {
-  border: 2px solid #4a90e2;
+  border: 2px solid #8A2BE2;
   border-radius: 50%;
-  background-color: #ADD8E6; /* Changed to light blue */
+  background-color: #8A2BE2;
   color: white;              /* White text */
   font-weight: bold;         /* Bold text */
   padding: 10px 15px;
   margin: 5px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  font-size: 1.25rem;  /* Increase bubble text size */
+  padding: 12px 18px;  /* Slightly larger padding */
 }
 
 .protocol-bubble.active {
-  background-color: #4a90e2;
+  background-color: #7A1DB4;
   color: white;
   font-weight: bold;
+  border: 3px solid gold;             /* Added border */
+  box-shadow: 0 0 10px rgba(255,215,0,0.8); /* Added glow effect */
+  transform: scale(1.1);              /* Slight enlarge effect */
 }

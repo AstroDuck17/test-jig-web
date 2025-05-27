@@ -5,33 +5,36 @@
   <title>Test Jig Runner</title>
   <link rel="stylesheet" href="../static/style.css">
   <style>
+    /* Dark theme and violet buttons */
     body, .container {
+      background-color: #121212;
+      color: #ffffff;
       margin: 0 auto;
       text-align: center;
     }
-    /* Updated styles for the device buttons */
+    /* Updated styles for the device buttons with violet shade */
     .device-button {
       margin: 5px;
       padding: 12px 24px;
       cursor: pointer;
-      background: linear-gradient(135deg, #4facfe, #00f2fe);
+      background: linear-gradient(135deg, #8a2be2, #da70d6);
       border: none;
       border-radius: 8px;
       color: white;
       font-size: 16px;
       font-family: 'Helvetica', sans-serif;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
       transition: all 0.3s ease;
     }
     .device-button:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+      box-shadow: 0 6px 8px rgba(0,0,0,0.4);
     }
     .device-button.active {
-      background: linear-gradient(135deg, #1e90ff, #00bfff);
-      border: 3px solid gold;  /* Added border for higher visibility */
-      transform: scale(1.05);   /* Slightly enlarge the active button */
-      box-shadow: 0 8px 12px rgba(0,0,0,0.2);  /* Enhanced shadow effect */
+      background: linear-gradient(135deg, #6a0dad, #8a2be2);
+      border: 3px solid gold;
+      transform: scale(1.05);
+      box-shadow: 0 8px 12px rgba(0,0,0,0.5);
     }
     /* New styles for the pin connections table */
     .pin-table {
@@ -41,9 +44,29 @@
     }
     .pin-table th,
     .pin-table td {
-      border: 1px solid #ccc;  /* add a border */
+      border: 1px solid #555;  /* darker border for dark theme */
       padding: 10px;
       text-align: center;
+    }
+    /* New CSS for the Run Test button */
+    .run-test-button {
+      background: linear-gradient(135deg, #ff416c, #ff4b2b);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 18px;
+      padding: 12px 24px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .run-test-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 8px rgba(0,0,0,0.4);
+    }
+    .run-test-button:active {
+      transform: translateY(0);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
     }
   </style>
 </head>
@@ -61,17 +84,19 @@
         <button type="button" class="protocol-bubble" data-protocol="uart">UART</button>
         <button type="button" class="protocol-bubble" data-protocol="pwm">PWM</button>
       </div>
+      <br>
       <h2>Select Device</h2>
       <!-- Device buttons container instead of dropdown -->
       <div id="device-selection"></div>
     </section>
     <section id="pin-section">
-      <h3>Pin Connections:</h3>
+      <h2>Pin Connections:</h2>
       <div id="pinOutput" class="pin-display" style="display: none;"></div>
     </section>
     <section id="test-section">
       <h2>Run Test</h2>
-      <button onclick="runTest()">Run Test</button>
+      <!-- Updated Run Test button -->
+      <button class="run-test-button" onclick="runTest()">Run Test</button>
       <pre id="testOutput"></pre>
     </section>
   </main>
