@@ -96,7 +96,7 @@
     <section id="test-section">
       <h2>Run Test</h2>
       <!-- Updated Run Test button -->
-      <button class="run-test-button" onclick="runTest()">Run Test</button>
+      <button class="run-test-button" onclick="runTest(selectedProtocol, selectedDevice)">Run Test</button>
       <pre id="testOutput"></pre>
     </section>
   </main>
@@ -148,7 +148,11 @@
           btn.className = "device-button";
           btn.textContent = opt.label;
           btn.value = opt.value;
+          // Associate the current protocol with the button
+          btn.setAttribute("data-protocol", selectedProtocol);
           btn.addEventListener("click", function() {
+            // Ensure the protocol is updated from the button’s data attribute.
+            selectedProtocol = this.getAttribute("data-protocol");
             selectedDevice = this.value;
             // update active state for device buttons
             document.querySelectorAll('.device-button').forEach(b => b.classList.remove('active'));
@@ -157,7 +161,7 @@
           });
           deviceContainer.appendChild(btn);
         });
-        // Optionally, auto-select the first device
+        // Auto-select the first device if available
         if (deviceOptions[selectedProtocol].length > 0) {
           const firstButton = deviceContainer.querySelector("button");
           firstButton.click();
@@ -244,17 +248,25 @@
       pinOutput.style.display = "block";
     }
 
-    function runTest() {
-      // Use selectedProtocol and selectedDevice for running tests
-      if (!selectedProtocol || !selectedDevice) return;
-      fetch(`/run-test/${selectedProtocol}/${encodeURIComponent(selectedDevice)}`, { method: 'POST' })
-        .then(response => response.json())
-        .then(data => {
-          document.getElementById('testOutput').textContent = data.result;
-        });
+    function runTest(protocol, device) {
+      console.log("Requested protocol:", protocol, "device:", device);
+      const url = `/run-test/${encodeURIComponent(protocol)}/${encodeURIComponent(device)}`;
+      fetch(url, { method: "POST" })
+          .then(response => response.json())
+          .then(data => {
+              console.log("Test result:", data.result);
+              // Update the output element with the received result
+              document.getElementById("testOutput").innerText = data.result;
+          })
+          .catch(error => console.error("Error:", error));
     }
 
-    // Initially do not update devices until a protocol is clicked.
+    // Example: Ensure that your buttons pass non-undefined values.
+    // Replace these example calls with code that extracts the selected values.
+    document.getElementById("testButton").addEventListener("click", function() {
+        // For example, pass protocol 'i2c' and device 'bh1750'
+        runTest("i2c", "bh1750");
+    });
   </script>
 </body>
 </html>

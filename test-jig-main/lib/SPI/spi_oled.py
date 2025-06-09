@@ -3,6 +3,7 @@ from luma.oled.device import sh1106
 from luma.core.render import canvas
 from PIL import ImageFont, Image
 import time
+import os
 
 class SPI_OLED:
     def __init__(self, protocol='spi', spi_port=0, spi_device=0, gpio_DC=22, gpio_RST=27, gpio_CS=8):
@@ -22,9 +23,15 @@ class SPI_OLED:
 
     def activate_gui(self,image_path=None):
         try:
+            # Check that the SPI device file exists
+            if image_path:
+                spi_path = f"/dev/spidev{self.spi_port}.{self.spi_device}"
+                if not os.path.exists(spi_path):
+                    raise FileNotFoundError(f"SPI device {spi_path} not found. OLED may not be connected.")
             # Initialize based on the protocol
             if self.protocol == 'spi':
-                serial = spi(port=self.spi_port, device=self.spi_device, gpio_DC=self.gpio_DC, gpio_RST=self.gpio_RST, gpio_CS=self.gpio_CS)
+                serial = spi(port=self.spi_port, device=self.spi_device,
+                             gpio_DC=self.gpio_DC, gpio_RST=self.gpio_RST, gpio_CS=self.gpio_CS)
             else:
                 raise ValueError("This code currently only supports SPI protocol for OLED.")
             device = sh1106(serial)
@@ -52,33 +59,59 @@ class SPI_OLED:
             #     # Sleep for 1 second before updating
             #     time.sleep(1)
         
-        except KeyboardInterrupt:
-            print("Process interrupted by user")
         except Exception as e:
             print(f"An error occurred: {e}")
         finally:
             self.clear_display(device)
             print("OLED display cleared and reset")
 
-    def activate_cli(self,image_path=None):
+    def activate_cli(self, image_path=None):
+        device = None
         try:
-            while True:    
-                try:
-                    if self.protocol == 'spi':
-                        serial = spi(port=self.spi_port, device=self.spi_device, gpio_DC=self.gpio_DC, gpio_RST=self.gpio_RST, gpio_CS=self.gpio_CS)
-                    else:
-                        raise ValueError("This code currently only supports SPI protocol for OLED.")
-                    device = sh1106(serial)
-                    image = Image.open(image_path).convert("1") 
-                    with canvas(device) as draw:
-                        draw.bitmap((0, 0), image, fill="white")
-                    time.sleep(1)
-                except Exception as e:
-                    print(f"An error occurred: {e}")
+            if image_path:
+                # Check that the SPI device file exists
+                spi_path = f"/dev/spidev{self.spi_port}.{self.spi_device}"
+                if not os.path.exists(spi_path):
+                    raise FileNotFoundError(f"SPI device {spi_path} not found. OLED may not be connected.")
+                # Test mode: run a single iteration
+                from luma.core.interface.serial import spi
+                serial = spi(port=self.spi_port, device=self.spi_device,
+                             gpio_DC=self.gpio_DC, gpio_RST=self.gpio_RST, gpio_CS=self.gpio_CS)
+                from luma.oled.device import sh1106
+                from PIL import Image
+                from luma.core.render import canvas
+                device = sh1106(serial)
+                image = Image.open(image_path).convert("1")  # Convert to 1-bit color
+                with canvas(device) as draw:
+                    draw.bitmap((0, 0), image, fill="white")
+                # Pause briefly for test output
+                import time
+                time.sleep(1)
+            else:
+                # CLI mode: run indefinitely
+                from luma.core.interface.serial import spi
+                from luma.oled.device import sh1106
+                from PIL import Image
+                from luma.core.render import canvas
+                import time
+                while True:
+                    try:
+                        serial = spi(port=self.spi_port, device=self.spi_device,
+                                     gpio_DC=self.gpio_DC, gpio_RST=self.gpio_RST, gpio_CS=self.gpio_CS)
+                        device = sh1106(serial)
+                        image = Image.open(image_path).convert("1")
+                        with canvas(device) as draw:
+                            draw.bitmap((0, 0), image, fill="white")
+                        time.sleep(1)
+                    except Exception as e:
+                        print(f"An error occurred: {e}")
         except KeyboardInterrupt:
-            print("Process interrupted by user")            
+            print("Process interrupted by user")
+        except Exception as e:
+            print(f"An error occurred: {e}")
         finally:
-            self.clear_display(device)
+            if device is not None:
+                self.clear_display(device)
             print("OLED display cleared and reset")
 
 if __name__ == "__main__":
