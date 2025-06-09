@@ -38,7 +38,28 @@ Alternatively, you can start the server directly with Uvicorn:
 ```
 uvicorn fastapi_app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
-
+### Development Setup
+Project structure:
+```
+test-jig-web
+├── webenv
+└── test-jig-main
+    └── fastapi_app
+```
+To run in development mode:
+1. In the `test-jig-web` directory, activate the virtual environment:
+   ```
+   source webenv/bin/activate
+   ```
+2. Change directory into `test-jig-main`:
+   ```
+   cd test-jig-main
+   ```
+3. Start Uvicorn:
+   ```
+   uvicorn fastapi_app.main:app --host 0.0.0.0 --port 8000 --reload
+   ```
+   
 ## Using the App
 
 ### Home Page
