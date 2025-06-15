@@ -38,17 +38,17 @@
     }
     /* New styles for the pin connections table */
     .pin-table {
-      margin: 20px auto;       /* center the table horizontally */
+      margin: 20px auto;
       border-collapse: collapse;
-      width: 80%;              /* make table larger */
+      width: 80%;
     }
     .pin-table th,
     .pin-table td {
-      border: 1px solid #555;  /* darker border for dark theme */
+      border: 1px solid #555;
       padding: 10px;
       text-align: center;
     }
-    /* New CSS for the Run Test button */
+    /* New CSS for the Run and Stop Test buttons */
     .run-test-button {
       background: linear-gradient(135deg, #ff416c, #ff4b2b);
       border: none;
@@ -59,6 +59,7 @@
       cursor: pointer;
       box-shadow: 0 4px 6px rgba(0,0,0,0.3);
       transition: transform 0.2s, box-shadow 0.2s;
+      margin: 5px;
     }
     .run-test-button:hover {
       transform: translateY(-2px);
@@ -95,8 +96,9 @@
     </section>
     <section id="test-section">
       <h2>Run Test</h2>
-      <!-- Updated Run Test button -->
+      <!-- Updated Run Test and new Stop Test buttons -->
       <button class="run-test-button" onclick="runTest(selectedProtocol, selectedDevice)">Run Test</button>
+      <button class="run-test-button" onclick="stopTest()">Stop Test</button>
       <pre id="testOutput"></pre>
     </section>
   </main>
@@ -141,27 +143,23 @@
     function updateDevices() {
       const deviceContainer = document.getElementById("device-selection");
       deviceContainer.innerHTML = "";
-      selectedDevice = ""; // clear previously selected device
+      selectedDevice = "";
       if (selectedProtocol && deviceOptions[selectedProtocol]) {
         deviceOptions[selectedProtocol].forEach(opt => {
           const btn = document.createElement("button");
           btn.className = "device-button";
           btn.textContent = opt.label;
           btn.value = opt.value;
-          // Associate the current protocol with the button
           btn.setAttribute("data-protocol", selectedProtocol);
           btn.addEventListener("click", function() {
-            // Ensure the protocol is updated from the button’s data attribute.
             selectedProtocol = this.getAttribute("data-protocol");
             selectedDevice = this.value;
-            // update active state for device buttons
             document.querySelectorAll('.device-button').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             fetchPinConnection();
           });
           deviceContainer.appendChild(btn);
         });
-        // Auto-select the first device if available
         if (deviceOptions[selectedProtocol].length > 0) {
           const firstButton = deviceContainer.querySelector("button");
           firstButton.click();
@@ -249,24 +247,33 @@
     }
 
     function runTest(protocol, device) {
-      console.log("Requested protocol:", protocol, "device:", device);
-      const url = `/run-test/${encodeURIComponent(protocol)}/${encodeURIComponent(device)}`;
-      fetch(url, { method: "POST" })
-          .then(response => response.json())
-          .then(data => {
-              console.log("Test result:", data.result);
-              // Update the output element with the received result
-              document.getElementById("testOutput").innerText = data.result;
-          })
-          .catch(error => console.error("Error:", error));
+        // Use EventSource to stream test output
+        document.getElementById("testOutput").innerHTML = "";
+        var eventSource = new EventSource(`/run-test/${encodeURIComponent(protocol)}/${encodeURIComponent(device)}`);
+        eventSource.onmessage = function(event) {
+            console.log("Test result:", event.data);
+            // Append the result with a line break
+            document.getElementById("testOutput").innerHTML += event.data + "<br>";
+        };
+        eventSource.onerror = function(err) {
+            console.error("EventSource error:", err);
+            eventSource.close();
+        };
+        window.currentEventSource = eventSource;
     }
 
-    // Example: Ensure that your buttons pass non-undefined values.
-    // Replace these example calls with code that extracts the selected values.
-    document.getElementById("testButton").addEventListener("click", function() {
-        // For example, pass protocol 'i2c' and device 'bh1750'
-        runTest("i2c", "bh1750");
-    });
+    function stopTest() {
+        if (window.currentEventSource) {
+            fetch('/stop-test', { method: "POST" })
+              .then(response => response.json())
+              .then(data => {
+                  console.log(data);
+              })
+              .catch(err => console.error(err));
+            window.currentEventSource.close();
+            window.currentEventSource = null;
+        }
+    }
   </script>
 </body>
 </html>

@@ -1,15 +1,16 @@
+import io, sys
+import asyncio
+import time
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, StreamingResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from lib.pin_details import PIN_CONNECTION
-import io, sys
 from starlette.concurrency import run_in_threadpool
-import asyncio
 
 router = APIRouter()
 templates = Jinja2Templates(directory="fastapi_app/templates")
 
-# Mapping of protocol and device values to the string to pass to PIN_CONNECTION.
 PIN_MAPPING = {
     "i2c": {
         "bh1750": "BH1750",
@@ -42,6 +43,8 @@ PIN_MAPPING = {
     }
 }
 
+TEST_STOP_FLAG = False
+
 @router.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
@@ -57,93 +60,101 @@ async def get_pin_connection(protocol: str, device: str):
     else:
         return {"error": f"Pin connection not defined for protocol '{protocol}' and device '{device}'."}
 
-@router.post("/run-test/{protocol}/{device}")
+@router.get("/run-test/{protocol}/{device}")
 async def run_test(protocol: str, device: str):
-    print(f"Received run_test POST: protocol='{protocol}', device='{device}'")
-    old_stdout = sys.stdout
-    sys.stdout = mystdout = io.StringIO()
-    protocol_lower = protocol.lower()
-    device_lower = device.lower()
+    global TEST_STOP_FLAG
+    TEST_STOP_FLAG = False
 
-    # Pre-check: verify that the proper connection exists.
-    if protocol_lower in PIN_MAPPING and device_lower in PIN_MAPPING[protocol_lower]:
-        device_name = PIN_MAPPING[protocol_lower][device_lower]
-        pin = PIN_CONNECTION(device_name)
-        if not pin.pin_connections:  # Adjust check as needed for your valid connection condition.
-            print(f"Error: Connection to '{device_name}' not available.")
-            sys.stdout = old_stdout
-            return {"result": f"Error: Connection to '{device_name}' not available."}
-    else:
-        print(f"Error: Pin mapping not defined for protocol '{protocol}' and device '{device}'.")
-        sys.stdout = old_stdout
-        return {"result": f"Error: Pin mapping not defined for protocol '{protocol}' and device '{device}'."}
+    async def event_generator():
+        protocol_lower = protocol.lower()
+        device_lower = device.lower()
+        scan_done = False  # new variable to ensure scan is performed only once
+        while not TEST_STOP_FLAG:
+            if protocol_lower == "i2c":
+                if not scan_done:
+                    try:
+                        from smbus2 import SMBus
+                        with SMBus(1) as bus:
+                            addresses = []
+                            for addr in range(0x03, 0x78):
+                                try:
+                                    bus.write_quick(addr)
+                                    addresses.append(hex(addr))
+                                except OSError:
+                                    pass
+                        yield f"data: I2C devices found: {addresses}\n\n"
+                    except Exception as e:
+                        yield f"data: Error scanning I2C bus: {e}\n\n"
+                    scan_done = True
+                if device_lower == "bh1750":
+                    from lib.I2C.BH1750 import BH1750
+                    result = await run_in_threadpool(BH1750().activate_gui)
+                    yield f"data: {result if result is not None else 'No connections present'}\n\n"
+                elif device_lower == "oled":
+                    from lib.I2C.i2c_oled import I2C_OLED
+                    result = await run_in_threadpool(I2C_OLED().activate_gui)
+                    yield f"data: {result if result is not None else 'No connections present'}\n\n"
+                elif device_lower == "mlx90614":
+                    from lib.I2C.mlx90614 import MLX90614
+                    result = await run_in_threadpool(MLX90614().activate_gui)
+                    yield f"data: {result if result is not None else 'No connections present'}\n\n"
+                else:
+                    yield "data: Unknown I2C device\n\n"
+            elif protocol_lower == "spi":
+                if device_lower == "sd-card":
+                    yield "data: (Test for SD Card Module not implemented)\n\n"
+                elif device_lower == "oled":
+                    from lib.SPI.spi_oled import SPI_OLED
+                    result = await run_in_threadpool(lambda: SPI_OLED().activate_cli(image_path="c.bmp"))
+                    yield f"data: {result if result is not None else 'No connections present'}\n\n"
+                else:
+                    yield "data: Unknown SPI device\n\n"
+            elif protocol_lower == "uart":
+                if device_lower == "pm sensor":
+                    from lib.UART.PM_Sensor import SDS011
+                    result = await run_in_threadpool(SDS011().activate_cli)
+                    yield f"data: {result if result is not None else 'No connections present'}\n\n"
+                else:
+                    yield "data: Unknown UART device\n\n"
+            elif protocol_lower == "pwm":
+                if device_lower == "led-fading":
+                    from lib.PWM.fade import LedFader
+                    try:
+                        result = await run_in_threadpool(lambda: LedFader(18).activate_cli())
+                        yield f"data: {result if result is not None else 'No connections present'}\n\n"
+                    except Exception as e:
+                        yield f"data: LED fading test error: {e}\n\n"
+                elif device_lower == "servo motor":
+                    from lib.PWM.servo import ServoMotor
+                    result = await run_in_threadpool(ServoMotor().activate_cli)
+                    yield f"data: {result if result is not None else 'No connections present'}\n\n"
+                elif device_lower == "rgb led":
+                    from lib.PWM.rgb import RGBLED
+                    try:
+                        result = await asyncio.wait_for(run_in_threadpool(RGBLED().activate_cli), timeout=2.0)
+                        yield f"data: {result if result is not None else 'No connections present'}\n\n"
+                    except asyncio.TimeoutError:
+                        yield "data: RGB LED test timed out (no connection?)\n\n"
+                    except Exception as e:
+                        yield f"data: RGB LED test error: {e}\n\n"
+                else:
+                    yield "data: Unknown PWM device\n\n"
+            elif protocol_lower == "adc":
+                yield "data: ADC test not implemented\n\n"
+            elif protocol_lower == "gpio":
+                if device_lower == "button":
+                    from lib.GPIO.button import ButtonController
+                    result = await run_in_threadpool(lambda: ButtonController(button_pin=5).activate_cli())
+                    yield f"data: {result if result is not None else 'No connections present'}\n\n"
+                else:
+                    yield "data: Unknown GPIO device\n\n"
+            else:
+                yield f"data: Error: Pin mapping not defined for protocol '{protocol}' and device '{device}'.\n\n"
+            await asyncio.sleep(1)
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
-    try:
-        if protocol_lower == "i2c":
-            if device_lower == "bh1750":
-                from lib.I2C.BH1750 import BH1750
-                try:
-                    await asyncio.wait_for(run_in_threadpool(BH1750().activate_gui), timeout=2.0)
-                except asyncio.TimeoutError:
-                    print("")  # Print empty output if timed out
-            elif device_lower == "oled":
-                from lib.I2C.i2c_oled import I2C_OLED
-                await run_in_threadpool(I2C_OLED().activate_gui)
-            elif device_lower == "mlx90614":
-                from lib.I2C.mlx90614 import MLX90614
-                await run_in_threadpool(MLX90614().activate_gui)
-            else:
-                print("Unknown I2C device")
-        elif protocol_lower == "spi":
-            if device_lower == "sd-card":
-                print("(Test for SD Card Module not implemented)")
-            elif device_lower == "oled":
-                from lib.SPI.spi_oled import SPI_OLED
-                await run_in_threadpool(lambda: SPI_OLED().activate_cli(image_path="c.bmp"))
-            else:
-                print("Unknown SPI device")
-        elif protocol_lower == "uart":
-            if device_lower == "pm sensor":
-                from lib.UART.PM_Sensor import SDS011
-                await run_in_threadpool(SDS011().activate_cli)
-            else:
-                print("Unknown UART device")
-        elif protocol_lower == "pwm":
-            if device_lower == "led-fading":
-                from lib.PWM.fade import LedFader
-                try:
-                    await run_in_threadpool(LedFader(18).activate_cli)
-                except Exception as e:
-                    print(f"LED fading test error: {e}")
-            elif device_lower == "servo motor":
-                from lib.PWM.servo import ServoMotor
-                await run_in_threadpool(ServoMotor().activate_cli)
-            elif device_lower == "rgb led":
-                from lib.PWM.rgb import RGBLED
-                try:
-                    await asyncio.wait_for(run_in_threadpool(RGBLED().activate_cli), timeout=2.0)
-                except asyncio.TimeoutError:
-                    print("RGB LED test timed out (no connection?)")
-                except Exception as e:
-                    print(f"RGB LED test error: {e}")
-            else:
-                print("Unknown PWM device")
-        elif protocol_lower == "adc":
-            print("ADC test not implemented")
-        elif protocol_lower == "gpio":
-            if device_lower == "button":
-                from lib.GPIO.button import ButtonController
-                await run_in_threadpool(lambda: ButtonController(button_pin=5).activate_cli())
-            else:
-                print("Unknown GPIO device")
-    except asyncio.CancelledError:
-        print("Test was cancelled due to shutdown.")
-        return {"result": "Test cancelled"}
-    except Exception as e:
-        print(f"Error: {str(e)}")
-    finally:
-        sys.stdout = old_stdout
-    result = mystdout.getvalue()
-    if not result.strip():
-        result = "No input"
-    return {"result": result}
+@router.post("/stop-test")
+async def stop_test():
+    global TEST_STOP_FLAG
+    TEST_STOP_FLAG = True
+    return {"result": "Test stopped"}
