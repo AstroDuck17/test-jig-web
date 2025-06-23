@@ -212,7 +212,7 @@ async def stop_test():
 RS485_PROCESS = None
 
 @router.get("/run-rs485", response_class=StreamingResponse)
-async def run_rs485(request: Request, mode: str, baudRate: int, parity: str, slaveId: int = 1, registerAddress: int = 0, countMode: int = 1, dataType: str = "uint"):
+async def run_rs485(request: Request, mode: str, baudRate: int, parity: str, slaveId: int = 1, registerAddress: int = 0, countMode: int = 1, dataType: str = "uint", stopbits: int = 1, bytesize: int = 8, scalingFactor: float = 1.0):
     global RS485_PROCESS
     args = []
     if mode.lower() == "receive":
@@ -220,7 +220,10 @@ async def run_rs485(request: Request, mode: str, baudRate: int, parity: str, sla
                 "--baud_rate", str(baudRate),
                 "--parity", parity,
                 "--slave_id", str(slaveId),
-                "--register_address", str(registerAddress)]
+                "--register_address", str(registerAddress),
+                "--stopbits", str(stopbits),
+                "--bytesize", str(bytesize),
+                "--scaling_factor", str(scalingFactor)]
     elif mode.lower() == "transmit":
         args = ["python", "lib/RS485/rsTransmitter.py",
                 "--baud_rate", str(baudRate),
@@ -228,7 +231,10 @@ async def run_rs485(request: Request, mode: str, baudRate: int, parity: str, sla
                 "--slave_id", str(slaveId),
                 "--register_address", str(registerAddress),
                 "--count_mode", str(countMode),
-                "--data_type", dataType]
+                "--data_type", dataType,
+                "--stopbits", str(stopbits),
+                "--bytesize", str(bytesize)]
+        # scalingFactor is not needed for transmit
     else:
         return {"error": "Invalid mode."}
 

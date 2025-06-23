@@ -14,6 +14,7 @@ def parse_args():
     # Add stopbits and bytesize arguments
     parser.add_argument("--stopbits", type=int, choices=[1,2], default=1, help="Stopbits, 1 or 2")
     parser.add_argument("--bytesize", type=int, choices=[7,8], default=8, help="Bytesize, 7 or 8")
+    parser.add_argument("--scaling_factor", type=float, default=1.0, help="Scaling factor for output value")
     return parser.parse_args()
 
 def config(args):
@@ -36,7 +37,7 @@ def config(args):
         print("✅ Connected successfully.")
     return client, slave_id
 
-def read_modbus_values(client, slave_id, register_address):
+def read_modbus_values(client, slave_id, register_address, scaling_factor=1.0):
     try:
         while True:
             rr = client.read_holding_registers(address=register_address, count=2, unit=slave_id)
@@ -49,7 +50,7 @@ def read_modbus_values(client, slave_id, register_address):
                     byteorder=Endian.Big,
                     wordorder=Endian.Little
                 )
-                value = round(decoder.decode_32bit_float(), 3)
+                value = round(decoder.decode_32bit_float() * scaling_factor, 3)
                 print(f"Register {register_address}: {value}")
             time.sleep(1)
     except KeyboardInterrupt:
@@ -58,7 +59,7 @@ def read_modbus_values(client, slave_id, register_address):
 if __name__ == "__main__":
     args = parse_args()
     client, slave_id = config(args)
-    read_modbus_values(client, slave_id, args.register_address)
+    read_modbus_values(client, slave_id, args.register_address, args.scaling_factor)
     client.close()
     #         if rr.isError():
     #             print(f"❌ Error while fetching data from register {addr}")
