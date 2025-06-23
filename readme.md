@@ -21,7 +21,7 @@ A modular Python-based test-jig platform for Raspberry Pi 3 to test and interact
 ## Directory Structure
 
 ```
-test-jig-web-final/
+test-jig-web/
 ├── test-jig-web-update/
 │   ├── cli.py
 │   ├── gui.py
