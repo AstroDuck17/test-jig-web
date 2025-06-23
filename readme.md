@@ -21,7 +21,7 @@ A modular Python-based test-jig platform for Raspberry Pi 3 to test and interact
 ## Directory Structure
 
 ```
-test-jig-web-final/
+test-jig-web/
 ├── test-jig-web-update/
 │   ├── cli.py
 │   ├── gui.py
@@ -44,7 +44,7 @@ test-jig-web-final/
 1. **Clone the repository**
    ```bash
    git clone <repo-url>
-   cd test-jig-web-final
+   cd test-jig-web
    ```
 
 2. **Create and activate a virtual environment**
