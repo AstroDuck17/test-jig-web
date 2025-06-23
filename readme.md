@@ -44,7 +44,7 @@ test-jig-web-final/
 1. **Clone the repository**
    ```bash
    git clone <repo-url>
-   cd test-jig-web-final
+   cd test-jig-web
    ```
 
 2. **Create and activate a virtual environment**
