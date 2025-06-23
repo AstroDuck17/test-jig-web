@@ -1,0 +1,218 @@
+* {
+    box-sizing: border-box; /* Apply border-box model globally */
+}
+
+body {
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+    background: #121212; /* Dark background */
+    color: #EEEEEE;     /* Light text */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;  /* Ensure full viewport height */
+    font-size: 1.125rem; /* Increased base font size */
+}
+
+header {
+    /* background-color: #5D3FD3; Dark violet header */
+    background-color: #8A2BE2;
+    color: #fff;
+    padding: 1rem 0;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.container {
+    background-color: #1e1e1e; /* Dark container */
+    width: 100%;         /* span full screen width */
+    margin: 0;           /* remove side margins */
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: none; /* Removed shadow for uniform appearance */
+}
+
+/* New rule to allow main content to grow */
+main.container {
+    flex: 1;
+}
+
+section {
+    margin-bottom: 2rem;
+}
+
+h1, h2, h3 {
+    margin-top: 0;
+}
+
+h1 {
+    font-size: 2.5rem;  /* Larger main heading */
+}
+h2 {
+    font-size: 2rem;    /* Larger sub-heading */
+}
+h3 {
+    font-size: 1.75rem; /* Larger sub-heading */
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+select {
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid #8A2BE2;
+    border-radius: 4px;
+    font-size: 1.2rem;
+    background-color: #1e1e1e;
+    color: #EEEEEE;
+}
+
+/* Override button styles */
+button {
+    width: auto;
+    display: inline-block;
+    margin: 0 0.5rem;
+    background-color: #8A2BE2; /* Violet button */
+    color: white;              /* White text */
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.device-button {
+    /* ...existing code... */
+    font-size: 1.25rem;  /* Increased text size */
+    padding: 14px 28px;  /* Increased padding */
+    /* ...existing code... */
+}
+
+select:focus, button:focus {
+    outline: none;
+    border-color: #8A2BE2;
+}
+
+button:hover {
+    background-color: #7A1DB4; /* Darker violet on hover */
+    transform: scale(1.05);    /* Enlarge button on hover */
+}
+
+pre {
+    background: #2e2e2e;  /* Dark background */
+    color: #EEEEEE;       /* Light text */
+    padding: 1rem;
+    border-radius: 4px;
+    overflow-x: auto;
+    font-size: 1rem;     /* Adjust test output font size if needed */
+}
+  
+footer {
+    text-align: center;
+    padding: 1rem;
+    background-color: #8A2BE2;  /* Violet */
+    color: #fff;
+    box-sizing: border-box;
+    width: 100%;   /* Ensure full width */
+    margin: 0;     /* Remove auto margins */
+}
+
+#main-layout {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+/* Left section for protocol selection */
+/* Reduced flex value to make it smaller */
+#left-section {
+    flex: 0.6; /* changed from 0.8 */
+    background-color: #1e1e1e;
+    text-align: center;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+/* Middle section for test output; increased flex value to make it bigger */
+#middle-section {
+    flex: 2.8; /* changed from 2.2 */
+    background-color: #1e1e1e;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+/* Right section split into device selection and pin connection */
+#right-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Device selection container gets more space */
+#device-selection-container {
+    flex: 2;
+    background-color: #1e1e1e;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+/* Pin connection container gets less space */
+#pin-connection-container {
+    flex: 1;
+    background-color: #1e1e1e;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+/* Adjust button styles if needed */
+.device-button {
+    /* ...existing code... */
+}
+
+#protocol-selection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;  /* changed from center */
+}
+
+/* Protocol bubble buttons: ensure same fixed width and centered text */
+.protocol-bubble {
+  border: 2px solid #8A2BE2;
+  border-radius: 50%;
+  background-color: #8A2BE2;
+  color: white;
+  font-weight: bold;
+  padding: 12px 18px;
+  margin: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 1.25rem;
+  width: 30%;                 /* added to enforce uniform sizing */
+  text-align: center;          /* centered text */
+}
+
+.protocol-bubble.active {
+  background-color: #7A1DB4;
+  color: white;
+  font-weight: bold;
+  border: 3px solid gold;             /* Added border */
+  box-shadow: 0 0 10px rgba(255,215,0,0.8); /* Added glow effect */
+  transform: scale(1.1);              /* Slight enlarge effect */
+}
+
+/* Add rule for the test output scrollable box */
+#testOutput {
+    height: 400px;
+    overflow-y: auto;
+    /* Optional: add a border and padding */
+    border: 1px solid #555;
+    padding: 1rem;
+    background-color: #2e2e2e;
+}

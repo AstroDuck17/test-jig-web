@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>RS485 Test</title>
+  <link rel="stylesheet" href="../static/style.css">
+  <style>
+    /* Only minimal overrides/additions here */
+    .mode-button.active {
+      background: linear-gradient(135deg, #6a0dad, #8a2be2);
+      border: 3px solid gold;
+      transform: scale(1.05);
+      box-shadow: 0 8px 12px rgba(0,0,0,0.5);
+    }
+    #rsOutput {
+      height: 400px;
+      overflow-y: auto;
+      background: #2e2e2e;
+      color: #EEEEEE;
+      padding: 1rem;
+      border-radius: 4px;
+      border: 1px solid #555;
+      font-size: 1rem;
+    }
+    .form-label {
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    .form-input, .form-select {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 0.5rem;
+      border-radius: 4px;
+      border: 1px solid #8A2BE2;
+      background: #1e1e1e;
+      color: #EEEEEE;
+      font-size: 1rem;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+        /* Dark theme and violet buttons */
+    body, .container {
+      background-color: #121212;
+      color: #ffffff;
+      margin: 0;
+      text-align: center;
+    }
+    /* Updated styles for the device buttons with violet shade */
+    .device-button {
+      margin: 5px;
+      padding: 12px 24px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #8a2be2, #da70d6);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      font-family: 'Helvetica', sans-serif;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      transition: all 0.3s ease;
+    }
+    .device-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 8px rgba(0,0,0,0.4);
+    }
+    .device-button.active {
+      background: linear-gradient(135deg, #6a0dad, #8a2be2);
+      border: 3px solid gold;
+      transform: scale(1.05);
+      box-shadow: 0 8px 12px rgba(0,0,0,0.5);
+    }
+    /* New styles for the pin connections table */
+    .pin-table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      width: 80%;
+      font-size: 0.875rem;
+    }
+    .pin-table th,
+    .pin-table td {
+      border: 1px solid #555;
+      padding: 10px;
+      text-align: center;
+    }
+    /* New CSS for the Run and Stop Test buttons */
+    .run-test-button {
+      background: linear-gradient(135deg, #ff416c, #ff4b2b);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 18px;
+      padding: 12px 24px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin: 5px;
+    }
+    .run-test-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 8px rgba(0,0,0,0.4);
+    }
+    .run-test-button:active {
+      transform: translateY(0);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+    /* Updated main layout styles */
+    #main-layout {
+      display: flex;
+      flex-wrap: wrap;  /* allow wrapping */
+      justify-content: space-between;
+      align-items: flex-start;
+      width: 100%;
+      /* Ensure full width and remove auto margins */
+      margin: 0;
+    }
+    /* Left section: protocol selection */
+    #left-section {
+      flex: 1 1 100px;   /* flexible with a minimum width */
+      padding: 10px;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.3);
+      margin: 1px;
+    }
+    /* Middle section: test output will span the area in the middle */
+    #middle-section {
+      flex: 2 1 400px;   /* flexible with a minimum width */
+      padding: 10px;
+      text-align: center;
+      margin: 1px;
+    }
+    /* Right section: device selection and pin connections */
+    #right-section {
+      flex: 1 1 100px;
+      padding: 5px;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.3);
+      margin: 1px;
+      box-sizing: border-box;
+      overflow-x: auto;
+      max-width: 100%;
+      background-color: #1e1e1e; /* Match other sections */
+      border-radius: 8px;        /* Match rounded corners */
+    }
+    /* Flex container to place Run Test and Stop Test buttons side by side */
+    .test-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    /* New scrollable output box for test results */
+    #testOutput {
+      height: 400px;
+      overflow-y: auto;
+    }
+    /* Navigation bar styles - new glassy pill look */
+    .nav-bar {
+      display: flex;
+      justify-content: flex-end;
+      gap: 18px;
+      margin-bottom: 12px;
+      margin-top: 10px;
+      padding-right: 36px;
+    }
+    .nav-btn {
+      padding: 12px 34px;
+      font-size: 1.08rem;
+      border: 1.5px solid #a084e8;
+      border-radius: 999px;
+      background: rgba(40, 30, 60, 0.55);
+      color: #e7e0fa;
+      font-family: 'Segoe UI', 'Helvetica', sans-serif;
+      box-shadow: 0 2px 16px 0 rgba(138,43,226,0.10), 0 1.5px 0 #8a2be2 inset;
+      cursor: pointer;
+      transition: 
+        background 0.18s, 
+        color 0.18s, 
+        border 0.18s, 
+        box-shadow 0.18s, 
+        transform 0.18s;
+      backdrop-filter: blur(2.5px);
+      outline: none;
+      letter-spacing: 0.7px;
+      font-weight: 500;
+    }
+    .nav-btn:hover, .nav-btn:focus {
+      background: linear-gradient(90deg, #8a2be2 0%, #da70d6 100%);
+      color: #fff;
+      border: 1.5px solid #fff;
+      box-shadow: 0 6px 24px rgba(138,43,226,0.18), 0 2px 0 #fff inset;
+      transform: translateY(-2px) scale(1.045);
+    }
+    .header-flex {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 0 36px 0 18px;
+      margin-bottom: 0;
+    }
+    .header-logo {
+      height: 54px;
+      width: auto;
+      margin-right: 18px;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(138,43,226,0.10);
+      background: #232526;
+      object-fit: contain;
+    }
+
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-flex">
+      <img src="../static/city.png" alt="City" class="header-logo" />
+      <h1 style="flex:1; text-align:left; margin:0;">Test Jig Runner</h1>
+      <div class="nav-bar">
+        <button onclick="location.href='./homepage.html'" class="nav-btn">Homepage</button>
+        <button onclick="location.href='./testjig.html'" class="nav-btn">TestJig</button>
+      </div>
+    </div>
+  </header>
+  <main class="container">
+    <div id="main-layout">
+      <!-- Left Section: Mode Selection -->
+      <div id="left-section">
+        <h2>Select RS485 Mode</h2>
+        <button id="btnReceive" class="mode-button device-button active" onclick="selectMode('receive')">Receive Data</button>
+        <button id="btnTransmit" class="mode-button device-button" onclick="selectMode('transmit')">Transmit Data</button>
+      </div>
+      <!-- Middle Section: Test Controls and Output -->
+      <div id="middle-section">
+        <h2>Run RS485 Test</h2>
+        <pre id="rsOutput"></pre>
+        <div class="test-buttons">
+          <button class="run-test-button" onclick="runRSTest()">Run Test</button>
+          <button class="run-test-button" onclick="stopRSTest()">Stop Test</button>
+          <button class="run-test-button" onclick="clearRSOutput()">Clear Output</button>
+          <button class="run-test-button" onclick="downloadRSLog()">Download Log</button>
+        </div>
+      </div>
+      <!-- Right Section: RS485 Settings Form -->
+      <div id="right-section">
+        <h2>RS485 Settings</h2>
+        <form id="rsForm">
+          <div class="form-group">
+            <label for="baudRate" class="form-label">Baud Rate:</label>
+            <select id="baudRate" name="baudRate" class="form-select">
+              <option value="9600">9600</option>
+              <option value="115200">115200</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="parity" class="form-label">Parity Bit:</label>
+            <select id="parity" name="parity" class="form-select">
+              <option value="E">E (Even)</option>
+              <option value="N">N (None)</option>
+              <option value="O">O (Odd)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="slaveId" class="form-label">Slave ID:</label>
+            <input type="number" id="slaveId" name="slaveId" class="form-input" placeholder="Default 1">
+          </div>
+          <div class="form-group">
+            <label for="registerAddress" class="form-label">Register Address:</label>
+            <input type="number" id="registerAddress" name="registerAddress" class="form-input">
+          </div>
+          <!-- New dropdown for Stopbits -->
+          <div class="form-group">
+            <label for="stopbits" class="form-label">Stopbits:</label>
+            <select id="stopbits" name="stopbits" class="form-select">
+              <option value="1">1</option>
+              <option value="2">2</option>
+            </select>
+          </div>
+          <!-- New dropdown for Bytesize -->
+          <div class="form-group">
+            <label for="bytesize" class="form-label">Bytesize:</label>
+            <select id="bytesize" name="bytesize" class="form-select">
+              <option value="7">7</option>
+              <option value="8" selected>8</option>
+            </select>
+          </div>
+          <!-- Scaling Factor dropdown -->
+          <div class="form-group">
+            <label for="scalingFactor" class="form-label">Scaling Factor:</label>
+            <select id="scalingFactor" name="scalingFactor" class="form-select">
+              <option value="1">1</option>
+              <option value="0.1">0.1</option>
+              <option value="0.01">0.01</option>
+              <option value="0.001">0.001</option>
+            </select>
+          </div>
+          <!-- Transmit only fields -->
+          <div id="transmitFields" style="display:none;">
+            <div class="form-group">
+              <label for="countMode" class="form-label">Count Mode:</label>
+              <select id="countMode" name="countMode" class="form-select">
+                <option value="1">Single Register (16-bit)</option>
+                <option value="2">Double Register (32-bit)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="dataType" class="form-label">Data Type:</label>
+              <select id="dataType" name="dataType" class="form-select">
+                <option value="float">Float (32-bit Float)</option>
+                <option value="long">long (32-bit Integer)</option>
+                <option value="uint">uint (16-bit Unsigned Integer)</option>
+              </select>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <p>&copy; 2025 Test Jig Runner</p>
+  </footer>
+  <script>
+    let rsMode = 'receive'; // default mode
+    let eventSource = null;
+    function selectMode(mode) {
+      rsMode = mode;
+      document.getElementById('transmitFields').style.display = (mode==='transmit') ? 'block' : 'none';
+      // Toggle active class for mode buttons
+      document.getElementById('btnReceive').classList.toggle('active', mode==='receive');
+      document.getElementById('btnTransmit').classList.toggle('active', mode==='transmit');
+    }
+    function runRSTest() {
+      clearRSOutput();
+      const formData = {
+        mode: rsMode,
+        baudRate: document.getElementById('baudRate').value,
+        parity: document.getElementById('parity').value,
+        slaveId: document.getElementById('slaveId').value || 1,
+        registerAddress: document.getElementById('registerAddress').value,
+        countMode: document.getElementById('countMode').value,
+        dataType: document.getElementById('dataType').value,
+        stopbits: document.getElementById('stopbits').value,
+        bytesize: document.getElementById('bytesize').value,
+        scalingFactor: document.getElementById('scalingFactor').value // new
+      };
+      eventSource = new EventSource(`/run-rs485?` + new URLSearchParams(formData));
+      eventSource.onmessage = function(event) {
+        let output = document.getElementById("rsOutput");
+        output.innerHTML += event.data + "<br>";
+        output.scrollTop = output.scrollHeight;
+      };
+      eventSource.onerror = function(err) {
+        console.error("EventSource error:", err);
+        eventSource.close();
+      };
+    }
+    function stopRSTest() {
+      if (eventSource) {
+        fetch('/stop-rs485', { method: "POST" });
+        eventSource.close();
+        eventSource = null;
+      }
+    }
+    function clearRSOutput() {
+      document.getElementById("rsOutput").innerHTML = "";
+    }
+    function downloadRSLog() {
+      const text = document.getElementById("rsOutput").innerText;
+      const blob = new Blob([text], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = "rs485_log.txt";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>

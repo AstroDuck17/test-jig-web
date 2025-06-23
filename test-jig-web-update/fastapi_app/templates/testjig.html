@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Test Jig Runner</title>
+  <link rel="stylesheet" href="../static/style.css">
+  <style>
+    /* Dark theme and violet buttons */
+    body, .container {
+      background-color: #121212;
+      color: #ffffff;
+      margin: 0;
+      text-align: center;
+    }
+    /* Updated styles for the device buttons with violet shade */
+    .device-button {
+      margin: 5px;
+      padding: 12px 24px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #8a2be2, #da70d6);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      font-family: 'Helvetica', sans-serif;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      transition: all 0.3s ease;
+    }
+    .device-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 8px rgba(0,0,0,0.4);
+    }
+    .device-button.active {
+      background: linear-gradient(135deg, #6a0dad, #8a2be2);
+      border: 3px solid gold;
+      transform: scale(1.05);
+      box-shadow: 0 8px 12px rgba(0,0,0,0.5);
+    }
+    /* New styles for the pin connections table */
+    .pin-table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      width: 80%;
+      font-size: 0.875rem;
+    }
+    .pin-table th,
+    .pin-table td {
+      border: 1px solid #555;
+      padding: 10px;
+      text-align: center;
+    }
+    /* New CSS for the Run and Stop Test buttons */
+    .run-test-button {
+      background: linear-gradient(135deg, #ff416c, #ff4b2b);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 18px;
+      padding: 12px 24px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin: 5px;
+    }
+    .run-test-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 8px rgba(0,0,0,0.4);
+    }
+    .run-test-button:active {
+      transform: translateY(0);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+    /* Updated main layout styles */
+    #main-layout {
+      display: flex;
+      flex-wrap: wrap;  /* allow wrapping */
+      justify-content: space-between;
+      align-items: flex-start;
+      width: 100%;
+      /* Ensure full width and remove auto margins */
+      margin: 0;
+    }
+    /* Left section: protocol selection */
+    #left-section {
+      flex: 1 1 100px;   /* flexible with a minimum width */
+      padding: 10px;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.3);
+      margin: 1px;
+    }
+    /* Middle section: test output will span the area in the middle */
+    #middle-section {
+      flex: 2 1 400px;   /* flexible with a minimum width */
+      padding: 10px;
+      text-align: center;
+      margin: 1px;
+    }
+    /* Right section: device selection and pin connections */
+    #right-section {
+      flex: 1 1 100px;   /* flexible with a minimum width */
+      display: flex;
+      flex-direction: column;
+      padding: 5px;
+      box-shadow: -2px 0 5px rgba(0,0,0,0.3);
+      margin: 1px;
+      /* Added properties to avoid overflow */
+      box-sizing: border-box;
+      overflow-x: auto;
+      max-width: 100%;
+    }
+    #device-selection-container,
+    #pin-connection-container {
+      width: 100%; /* Force full width for inner containers */
+    }
+    #device-selection-container {
+      flex: 1;
+      margin-bottom: 1px;
+    }
+    #pin-connection-container {
+      flex: 1;
+    }
+    /* Flex container to place Run Test and Stop Test buttons side by side */
+    .test-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    /* New scrollable output box for test results */
+    #testOutput {
+      height: 400px;
+      overflow-y: auto;
+    }
+    /* Navigation bar styles - new glassy pill look */
+    .nav-bar {
+      display: flex;
+      justify-content: flex-end;
+      gap: 18px;
+      margin-bottom: 12px;
+      margin-top: 10px;
+      padding-right: 36px;
+    }
+    .nav-btn {
+      padding: 12px 34px;
+      font-size: 1.08rem;
+      border: 1.5px solid #a084e8;
+      border-radius: 999px;
+      background: rgba(40, 30, 60, 0.55);
+      color: #e7e0fa;
+      font-family: 'Segoe UI', 'Helvetica', sans-serif;
+      box-shadow: 0 2px 16px 0 rgba(138,43,226,0.10), 0 1.5px 0 #8a2be2 inset;
+      cursor: pointer;
+      transition: 
+        background 0.18s, 
+        color 0.18s, 
+        border 0.18s, 
+        box-shadow 0.18s, 
+        transform 0.18s;
+      backdrop-filter: blur(2.5px);
+      outline: none;
+      letter-spacing: 0.7px;
+      font-weight: 500;
+    }
+    .nav-btn:hover, .nav-btn:focus {
+      background: linear-gradient(90deg, #8a2be2 0%, #da70d6 100%);
+      color: #fff;
+      border: 1.5px solid #fff;
+      box-shadow: 0 6px 24px rgba(138,43,226,0.18), 0 2px 0 #fff inset;
+      transform: translateY(-2px) scale(1.045);
+    }
+    .header-flex {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 0 36px 0 18px;
+      margin-bottom: 0;
+    }
+    .header-logo {
+      height: 54px;
+      width: auto;
+      margin-right: 18px;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(138,43,226,0.10);
+      background: #232526;
+      object-fit: contain;
+    }
+    /* Add style for device dropdown */
+    .device-dropdown {
+      width: 80%;
+      padding: 12px;
+      font-size: 1.1rem;
+      border-radius: 8px;
+      border: 1.5px solid #8A2BE2;
+      background: #232526;
+      color: #fff;
+      margin: 10px auto 0 auto;
+      display: block;
+      font-family: 'Segoe UI', 'Helvetica', sans-serif;
+      transition: border 0.2s;
+    }
+    .device-dropdown:focus {
+      border: 1.5px solid #da70d6;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-flex">
+      <img src="../static/city.png" alt="City" class="header-logo" />
+      <h1 style="flex:1; text-align:left; margin:0;">Test Jig Runner</h1>
+      <div class="nav-bar">
+        <button onclick="location.href='./homepage.html'" class="nav-btn">Homepage</button>
+        <button onclick="location.href='./rs485.html'" class="nav-btn">RS485</button>
+      </div>
+    </div>
+  </header>
+  <!-- New main layout container -->
+  <main class="container">
+    <div id="main-layout">
+      <!-- Left Section: Protocol Selection -->
+      <div id="left-section">
+          <h2>Select Protocol</h2>
+          <div id="protocol-selection">
+            <button type="button" class="protocol-bubble" data-protocol="i2c">I2C</button>
+            <button type="button" class="protocol-bubble" data-protocol="spi">SPI</button>
+            <button type="button" class="protocol-bubble" data-protocol="uart">UART</button>
+            <button type="button" class="protocol-bubble" data-protocol="pwm">PWM</button>
+            <!-- New protocol buttons -->
+            <button type="button" class="protocol-bubble" data-protocol="adc">ADC</button>
+            <button type="button" class="protocol-bubble" data-protocol="gpio">GPIO</button>
+          </div>
+      </div>
+      <!-- Middle Section: Test Output -->
+      <div id="middle-section">
+          <h2>Run Test</h2>
+          <pre id="testOutput"></pre>
+          <div class="test-buttons">
+            <button class="run-test-button" onclick="runTest(selectedProtocol, selectedDevice)">Run Test</button>
+            <button class="run-test-button" onclick="stopTest()">Stop Test</button>
+            <button class="run-test-button" onclick="clearOutput()">Clear Output</button>
+            <!-- New Download Log button -->
+            <button class="run-test-button" onclick="downloadLog()">Download Log</button>
+          </div>
+          <!-- Changed: Added an id to the output container -->
+      </div>
+      <!-- Right Section: Top: Device Selection, Bottom: Pin Connections -->
+      <div id="right-section">
+          <div id="device-selection-container">
+              <h2>Select Device</h2>
+              <!-- Dropdown for device selection -->
+              <select id="device-dropdown" class="device-dropdown"></select>
+          </div>
+          <div id="pin-connection-container">
+              <h2>Pin Connections:</h2>
+              <div id="pinOutput" class="pin-display" style="display: none;"></div>
+          </div>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <p>&copy; 2025 Test Jig Runner</p>
+  </footer>
+  <script>
+    // Set default selected protocol and device to empty
+    let selectedProtocol = "";
+    let selectedDevice = "";
+
+    document.querySelectorAll('.protocol-bubble').forEach(button => {
+      button.addEventListener('click', function() {
+        selectedProtocol = this.getAttribute('data-protocol');
+        // Clear existing active styling for protocol bubbles
+        document.querySelectorAll('.protocol-bubble').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        updateDevices();
+      });
+    });
+
+    const deviceOptions = {
+      "i2c": [
+        { value: "bh1750", label: "BH1750" },
+        { value: "oled", label: "OLED" },
+        { value: "mlx90614", label: "MLX90614" }
+      ],
+      "spi": [
+        { value: "sd-card", label: "SD Card Module" },
+        { value: "oled", label: "SPI OLED" }
+      ],
+      "uart": [
+        { value: "pm sensor", label: "PM Sensor" }
+      ],
+      "pwm": [
+        { value: "led-fading", label: "LED(Fading)" },
+        { value: "servo motor", label: "Servo Motor" },
+        { value: "rgb led", label: "RGB LED" }
+      ],
+      // New device options for ADC and GPIO protocols
+      "adc": [
+        { value: "pot", label: "Potentiometer" },
+        { value: "tds", label: "TDS" },
+        { value: "ldr", label: "LDR" }
+      ],
+      "gpio": [
+        { value: "led", label: "LED" },
+        { value: "button", label: "BUTTON" },
+        { value: "ultrasonic sensor", label: "Ultrasonic Sensor" },
+        { value: "dht11", label: "DHT11" },
+        { value: "ds18b20", label: "DS18B20" }
+      ]
+    };
+
+    function updateDevices() {
+      const dropdown = document.getElementById("device-dropdown");
+      dropdown.innerHTML = "";
+      selectedDevice = "";
+      if (selectedProtocol && deviceOptions[selectedProtocol]) {
+        deviceOptions[selectedProtocol].forEach(opt => {
+          const option = document.createElement("option");
+          option.value = opt.value;
+          option.textContent = opt.label;
+          dropdown.appendChild(option);
+        });
+        // Select first device by default and trigger change
+        if (deviceOptions[selectedProtocol].length > 0) {
+          dropdown.selectedIndex = 0;
+          selectedDevice = dropdown.value;
+          fetchPinConnection();
+        }
+      } else {
+        document.getElementById('pinOutput').innerHTML = "";
+        document.getElementById('pinOutput').style.display = "none";
+      }
+    }
+
+    // Listen for dropdown changes
+    document.addEventListener("DOMContentLoaded", function() {
+      document.getElementById("device-dropdown").addEventListener("change", function() {
+        selectedDevice = this.value;
+        fetchPinConnection();
+      });
+    });
+
+    function fetchPinConnection() {
+      if (!selectedProtocol || !selectedDevice) {
+        document.getElementById('pinOutput').style.display = "none";
+        return;
+      }
+      let tableHTML = "";
+      if (selectedProtocol === "i2c") {
+        let header = "I2C port";
+        let rows = [
+          { pin: "VCC", port: "Rpi VCC" },
+          { pin: "GND", port: "Rpi GND" },
+          { pin: "SCL", port: "PIN 1 (I2C PORT)" },
+          { pin: "SDA", port: "PIN 2 (I2C PORT)" }
+        ];
+        tableHTML = generateTable(header, rows);
+      } else if (selectedProtocol === "spi") {
+        let header = "SPI port";
+        let rows = [];
+        if (selectedDevice === "sd-card") {
+          rows = [
+            { pin: "VCC", port: "Rpi VCC" },
+            { pin: "GND", port: "Rpi GND" },
+            { pin: "MISO", port: "PIN X (SPI PORT)" },
+            { pin: "MOSI", port: "PIN Y (SPI PORT)" },
+            { pin: "SCK", port: "PIN Z (SPI PORT)" },
+            { pin: "CS", port: "PIN W (SPI PORT)" }
+          ];
+        } else if (selectedDevice === "oled") {
+          rows = [
+            { pin: "VCC", port: "Rpi VCC" },
+            { pin: "GND", port: "Rpi GND" },
+            { pin: "SCK", port: "PIN 3 (SPI PORT)" },
+            { pin: "SDA", port: "PIN 2 (SPI PORT)" },
+            { pin: "RES", port: "PIN 6 (SPI PORT)" },
+            { pin: "DC", port: "PIN 5 (SPI PORT)" },
+            { pin: "CS", port: "PIN 4 (SPI PORT)" }
+          ];
+        }
+        tableHTML = generateTable(header, rows);
+      } else if (selectedProtocol === "uart") {
+        let header = "UART port";
+        let rows = [
+          { pin: "VCC", port: "Rpi VCC" },
+          { pin: "GND", port: "Rpi GND" },
+          { pin: "RX",  port: "PIN 1 (UART PORT)" },
+          { pin: "TX",  port: "PIN 2 (UART PORT)" }
+        ];
+        tableHTML = generateTable(header, rows);
+      } else if (selectedProtocol === "pwm") {
+        let header = "PWM port";
+        let rows = [];
+        if (selectedDevice === "led-fading") {
+          rows = [
+            { pin: "LED", port: "PIN 1 (PWM PORT)" },
+            { pin: "GND", port: "Rpi GND" }
+          ];
+        } else if (selectedDevice === "servo motor") {
+          rows = [
+            { pin: "VCC",    port: "Rpi VCC" },
+            { pin: "GND",    port: "Rpi GND" },
+            { pin: "Signal", port: "PIN 4 (PWM PORT)" }
+          ];
+        } else if (selectedDevice === "rgb led") {
+          rows = [
+            { pin: "R",    port: "PIN 1 (PWM PORT)" },
+            { pin: "B",    port: "PIN 2 (PWM PORT)" },
+            { pin: "G",    port: "PIN 3 (PWM PORT)" },
+            { pin: "GND",  port: "Rpi GND" }
+          ];
+        }
+        tableHTML = generateTable(header, rows);
+      } else if (selectedProtocol === "adc") {
+        // ADC devices: same table for all options
+        let header = "ADC port";
+        let rows = [
+          { pin: "VCC", port: "Rpi VCC" },
+          { pin: "GND", port: "Rpi GND" },
+          { pin: "DATA Pin", port: "PIN 1 (ADC PORT)" }
+        ];
+        tableHTML = generateTable(header, rows);
+      } else if (selectedProtocol === "gpio") {
+        let header = "GPIO Port";
+        let rows = [];
+        if (selectedDevice === "led") {
+          rows = [
+            { pin: "LED(+)", port: "PIN 2 (GPIO PORT)" },
+            { pin: "GND", port: "Rpi GND" }
+          ];
+        } else if (selectedDevice === "button") {
+          rows = [
+            { pin: "Terminal 1", port: "PIN 3 (GPIO PORT)" },
+            { pin: "Terminal 2", port: "Rpi GND" }
+          ];
+        } else if (selectedDevice === "dht11") {
+          rows = [
+            { pin: "VCC", port: "Rpi VCC" },
+            { pin: "GND", port: "Rpi GND" },
+            { pin: "DATA", port: "PIN 4 (GPIO PORT)" }
+          ];
+        } else if (selectedDevice === "ultrasonic sensor") {
+          rows = [
+            { pin: "VCC", port: "Rpi VCC" },
+            { pin: "GND", port: "Rpi GND" },
+            { pin: "Trigger", port: "PIN 6 (GPIO PORT)" },
+            { pin: "Echo", port: "PIN 5 (GPIO PORT)" }
+          ];
+        } else if (selectedDevice === "ds18b20") {
+          rows = [
+            { pin: "VCC", port: "Rpi VCC" },
+            { pin: "GND", port: "Rpi GND" },
+            { pin: "Signal", port: "PIN 1 (GPIO PORT)" }
+          ];
+        }
+        tableHTML = generateTable(header, rows);
+      }
+      document.getElementById('pinOutput').innerHTML = tableHTML;
+      document.getElementById('pinOutput').style.display = "block";
+    }
+
+    function generateTable(header, rows) {
+      let tableHTML = `<table class="pin-table">
+        <thead>
+          <tr><th>Pin</th><th>${header}</th></tr>
+        </thead>
+        <tbody>`;
+      rows.forEach(row => {
+        tableHTML += `<tr><td>${row.pin}</td><td>${row.port}</td></tr>`;
+      });
+      tableHTML += `</tbody></table>`;
+      return tableHTML;
+    }
+
+    function runTest(protocol, device) {
+        // Use EventSource to stream test output
+        document.getElementById("testOutput").innerHTML = "";
+        var eventSource = new EventSource(`/run-test/${encodeURIComponent(protocol)}/${encodeURIComponent(device)}`);
+        eventSource.onmessage = function(event) {
+            console.log("Test result:", event.data);
+            // Append output with a line break
+            let output = document.getElementById("testOutput");
+            output.innerHTML += event.data + "<br>";
+            // Automatically scroll to bottom as new results appear
+            output.scrollTop = output.scrollHeight;
+        };
+        eventSource.onerror = function(err) {
+            console.error("EventSource error:", err);
+            eventSource.close();
+        };
+        window.currentEventSource = eventSource;
+    }
+
+    function stopTest() {
+        if (window.currentEventSource) {
+            fetch('/stop-test', { method: "POST" })
+              .then(response => response.json())
+              .then(data => {
+                  console.log(data);
+              })
+              .catch(err => console.error(err));
+            window.currentEventSource.close();
+            window.currentEventSource = null;
+        }
+    }
+
+    function clearOutput() {
+      document.getElementById("testOutput").innerHTML = "";
+    }
+    
+    // New downloadLog() function
+    function downloadLog() {
+      const outputText = document.getElementById("testOutput").innerText;
+      const blob = new Blob([outputText], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "test_output_log.txt";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>

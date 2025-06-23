@@ -1,0 +1,22 @@
+Protocol,Device
+
+I2C,OLED
+I2C,BH1750
+I2C,MXL90614
+
+SPI,SPI OLED
+
+PWM,RGB led
+PWM,servo motor
+
+GPIO,led
+GPIO,button
+GPIO,DHT11
+GPIO,ultrasonic sensor
+GPIO,DS18B20
+
+ADC,Potentiometer
+ADC,ldr
+ADC,tds
+
+UART,PM Sensor

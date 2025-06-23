@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Test Jig Homepage</title>
+  <link rel="stylesheet" href="../static/style.css">
+  <style>
+    body, .container {
+      background-color: #121212;
+      color: #ffffff;
+      margin: 0;
+      text-align: center;
+    }
+    .main-sections {
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+      gap: 40px;
+      margin: 60px auto 40px auto;
+      max-width: 900px;
+    }
+    .section-card {
+      flex: 1 1 300px;
+      background: linear-gradient(135deg, #232526 0%, #414345 100%);
+      border-radius: 16px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+      padding: 48px 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .section-card:hover {
+      transform: translateY(-6px) scale(1.03);
+      box-shadow: 0 12px 32px rgba(138,43,226,0.25);
+    }
+    .section-title {
+      font-size: 2rem;
+      margin-bottom: 24px;
+      color: #da70d6;
+      letter-spacing: 1px;
+    }
+    .section-desc {
+      font-size: 1.1rem;
+      margin-bottom: 32px;
+      color: #cccccc;
+    }
+    .device-button {
+      margin: 0;
+      padding: 16px 36px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #8a2be2, #da70d6);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 1.25rem;
+      font-family: 'Helvetica', sans-serif;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: all 0.3s ease;
+    }
+    .device-button:hover {
+      transform: translateY(-2px) scale(1.04);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+      background: linear-gradient(135deg, #6a0dad, #8a2be2);
+    }
+    .header-flex {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      padding: 0 36px 0 18px;
+      margin-bottom: 0;
+      position: relative;
+    }
+    .header-logo {
+      height: 54px;
+      width: auto;
+      margin-right: 18px;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(138,43,226,0.10);
+      background: #232526;
+      object-fit: contain;
+    }
+    .header-title-centered {
+      flex: 0 1 auto;
+      margin: 0 auto;
+      text-align: center;
+      font-size: 2.2rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: #fff;
+    }
+    @media (max-width: 800px) {
+      .main-sections {
+        flex-direction: column;
+        gap: 24px;
+        max-width: 95vw;
+      }
+      .section-card {
+        padding: 32px 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-flex">
+      <img src="../static/city.png" alt="City" class="header-logo" />
+      <span class="header-title-centered">Test Jig Runner</span>
+    </div>
+  </header>
+  <main class="container">
+    <div class="main-sections">
+      <div class="section-card">
+        <div class="section-title">TestJig</div>
+        <div class="section-desc">
+          Run and monitor various protocol/device tests with pin mapping and live output.
+        </div>
+        <button onclick="location.href='./testjig.html'" class="device-button">Go to TestJig</button>
+      </div>
+      <div class="section-card">
+        <div class="section-title">RS485</div>
+        <div class="section-desc">
+          Configure and test RS485 communication with advanced settings and real-time logs.
+        </div>
+        <button onclick="location.href='./rs485.html'" class="device-button">Go to RS485</button>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <p>&copy; 2025 Test Jig Runner</p>
+  </footer>
+</body>
+</html>
