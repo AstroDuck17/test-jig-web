@@ -70,19 +70,29 @@ class RGBLED:
             print(f"An error occurred: {e}")
 
     def activate_gui(self):
-        rgb_led = RGBLED()
-        rgb_led.init_rgb()
+        self.init_rgb()
         try:
-            rgb_led.set_color(255, 0, 0)
+            self.set_color(255, 255, 255)
             time.sleep(1)  # Keep the LED on for 5 seconds
-            rgb_led.set_color(0, 255, 0)
+            self.set_color(255, 0, 0)
             time.sleep(1)  # Keep the LED on for 5 seconds
-            rgb_led.set_color(0, 0, 255)
+            self.set_color(0, 255, 0)
             time.sleep(1)  # Keep the LED on for 5 seconds
-        # rgb_led.cleanup_rgb()
+            self.set_color(0, 0, 255)
+            time.sleep(1)  # Keep the LED on for 5 seconds
+            self.set_color(0, 255, 255)
+            time.sleep(1)  # Keep the LED on for 5 seconds
+            self.set_color(255, 255, 0)
+            time.sleep(1)  # Keep the LED on for 5 seconds
+            self.set_color(255, 0, 255)
+            time.sleep(1)  # Keep the LED on for 5 seconds
+
         except Exception as e:
             print("EROOR")
-    
+        finally:
+            self.turn_off()
+            self.cleanup_rgb()
+        return "RGB LED test completed."
 
 if __name__ == "__main__":
     rgb_led = RGBLED()

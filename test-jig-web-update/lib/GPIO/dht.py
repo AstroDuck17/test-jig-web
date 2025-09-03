@@ -9,19 +9,19 @@ class DHTSensor:
         self.dht_device = adafruit_dht.DHT11(self.pin, use_pulseio=False)
 
     def activate_gui(self):
-        try:
-            temperature = self.dht_device.temperature
-            humidity = self.dht_device.humidity
-            # print((temperature))
-            # print((humidity))
-            if humidity is not None and temperature is not None:
-                return f'Temperature: {temperature:.1f}°C\nHumidity: {humidity:.1f}%'
-            else:
-                return 'Failed to get reading. Try again!'
-        except RuntimeError as error:
-            print('Failed to get reading. Try again!')
-        finally:
-            time.sleep(1)
+        attempts = 5
+        for i in range(attempts):
+            try:
+                # Wait longer to allow sensor stabilization before each attempt
+                time.sleep(3)
+                temperature = self.dht_device.temperature
+                humidity = self.dht_device.humidity
+                if humidity is not None and temperature is not None:
+                    return f'Temperature: {temperature:.1f}°C<br>Humidity: {humidity:.1f}%'
+            except Exception as error:
+                # Catch all exceptions and retry
+                pass
+        return 'Failed to get reading. Try again!'
 
     def activate_cli(self):
         try:

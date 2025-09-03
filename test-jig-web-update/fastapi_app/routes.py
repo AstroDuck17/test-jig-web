@@ -77,15 +77,37 @@ async def get_pin_connection(protocol: str, device: str):
     else:
         return {"error": f"Pin connection not defined for protocol '{protocol}' and device '{device}'."}
 
+# Global variable to hold SPI OLED instance
+SPIOLED_INSTANCE = None
+
 @router.get("/run-test/{protocol}/{device}")
 async def run_test(protocol: str, device: str):
-    global TEST_STOP_FLAG
+    global TEST_STOP_FLAG, SPIOLED_INSTANCE
     TEST_STOP_FLAG = False
 
     async def event_generator():
+        global SPIOLED_INSTANCE   # added global declaration
         protocol_lower = protocol.lower()
         device_lower = device.lower()
-        scan_done = False  # new variable to ensure scan is performed only once
+        scan_done = False
+        # Handle SPI OLED initialization only once outside the loop
+        if protocol_lower == "spi" and device_lower == "oled" and SPIOLED_INSTANCE is None:
+            from lib.SPI.spi_oled import SPI_OLED
+            from luma.core.interface.serial import spi
+            from luma.oled.device import sh1106
+            from luma.core.render import canvas
+            from PIL import Image
+            yield "data: SPI OLED is displaying image...\n\n"
+            spi_oled = SPI_OLED()
+            serial = spi(port=spi_oled.spi_port, device=spi_oled.spi_device,
+                         gpio_DC=spi_oled.gpio_DC, gpio_RST=spi_oled.gpio_RST, gpio_CS=spi_oled.gpio_CS)
+            device_instance = sh1106(serial)
+            spi_oled.device = device_instance
+            SPIOLED_INSTANCE = spi_oled
+            image = Image.open("/home/testjig/Downloads/TestJig/test-jig-web/test-jig-web-update/lib/SPI/c.bmp").convert("1")
+            with canvas(device_instance) as draw:
+                draw.bitmap((0, 0), image, fill="white")
+            yield "data: Image displayed on SPI OLED.\n\n"
         while not TEST_STOP_FLAG:
             if protocol_lower == "i2c":
                 if not scan_done:
@@ -121,10 +143,7 @@ async def run_test(protocol: str, device: str):
                 if device_lower == "sd-card":
                     yield "data: (Test for SD Card Module not implemented)\n\n"
                 elif device_lower == "oled":
-                    from lib.SPI.spi_oled import SPI_OLED
-                    yield "data: SPI OLED is displaying image...\n\n"   # <-- new message for SPI OLED
-                    result = await run_in_threadpool(lambda: SPI_OLED().activate_cli(image_path="/home/testjig/Downloads/TestJig/test-jig-web/test-jig-web-update/lib/SPI/c.bmp"))
-                    yield f"data: {result if result is not None else 'No connections present'}\n\n"
+                    yield "data: SPI OLED is already initialized and displaying image.\n\n"
                 else:
                     yield "data: Unknown SPI device\n\n"
             elif protocol_lower == "uart":
@@ -154,7 +173,8 @@ async def run_test(protocol: str, device: str):
                 elif device_lower == "rgb led":
                     from lib.PWM.rgb import RGBLED
                     try:
-                        result = await asyncio.wait_for(run_in_threadpool(RGBLED().activate_cli), timeout=2.0)
+                        # Call activate_gui() to run a single test cycle and properly clean up
+                        result = await asyncio.wait_for(run_in_threadpool(RGBLED().activate_gui), timeout=15.0)
                         yield f"data: {result if result is not None else 'No connections present'}\n\n"
                     except asyncio.TimeoutError:
                         yield "data: RGB LED test timed out (no connection?)\n\n"
@@ -191,8 +211,9 @@ async def run_test(protocol: str, device: str):
                 elif device_lower == "dht11":
                     import board
                     from lib.GPIO.dht import DHTSensor
-                    result = await run_in_threadpool(lambda: DHTSensor(pin=board.D13).activate_cli())
-                    yield f"data: {result}\n\n"
+                    # Use activate_gui() to obtain a return value for streaming
+                    result = await run_in_threadpool(lambda: DHTSensor(pin=board.D13).activate_gui())
+                    yield f"data: {result if result is not None else 'No connections present'}\n\n"
                 elif device_lower == "ultrasonic sensor":
                     from lib.GPIO.ultrasonic import UltrasonicSensor
                     result = await run_in_threadpool(lambda: UltrasonicSensor(trigger_pin=26, echo_pin=19).activate_cli())
@@ -210,19 +231,19 @@ async def run_test(protocol: str, device: str):
 
 @router.post("/stop-test")
 async def stop_test():
-    global TEST_STOP_FLAG
+    global TEST_STOP_FLAG, SPIOLED_INSTANCE
     TEST_STOP_FLAG = True
-    # Stop OLED displays (for both I2C and SPI OLED) if any are active
-    try:
-        from lib.I2C.i2c_oled import I2C_OLED
-        I2C_OLED().clear_display()   # Assumes clear_display method is implemented
-    except Exception:
-        pass
-    try:
-        from lib.SPI.spi_oled import SPI_OLED
-        SPI_OLED().clear_display()   # Assumes clear_display method is implemented
-    except Exception:
-        pass
+    print("STOP-TEST: TEST_STOP_FLAG set to True")
+    if SPIOLED_INSTANCE is not None:
+        print("STOP-TEST: SPIOLED_INSTANCE is available")
+        if SPIOLED_INSTANCE.device is not None:
+            print("STOP-TEST: SPI OLED device found; clearing display")
+            SPIOLED_INSTANCE.clear_display(SPIOLED_INSTANCE.device)
+            SPIOLED_INSTANCE = None
+        else:
+            print("STOP-TEST: SPIOLED_INSTANCE.device is None")
+    else:
+        print("STOP-TEST: No SPI OLED instance stored")
     return {"result": "Test stopped"}
 
 # New global variable to hold RS485 process

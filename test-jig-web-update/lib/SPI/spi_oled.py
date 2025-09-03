@@ -51,7 +51,6 @@ class SPI_OLED:
                 
             #     # Sleep for 1 second before updating
             #     time.sleep(1)
-        
         except KeyboardInterrupt:
             print("Process interrupted by user")
         except Exception as e:
