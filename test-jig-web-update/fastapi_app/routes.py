@@ -122,7 +122,8 @@ async def run_test(protocol: str, device: str):
                     yield "data: (Test for SD Card Module not implemented)\n\n"
                 elif device_lower == "oled":
                     from lib.SPI.spi_oled import SPI_OLED
-                    result = await run_in_threadpool(lambda: SPI_OLED().activate_cli(image_path="c.bmp"))
+                    yield "data: SPI OLED is displaying image...\n\n"   # <-- new message for SPI OLED
+                    result = await run_in_threadpool(lambda: SPI_OLED().activate_cli(image_path="/home/testjig/Downloads/TestJig/test-jig-web/test-jig-web-update/lib/SPI/c.bmp"))
                     yield f"data: {result if result is not None else 'No connections present'}\n\n"
                 else:
                     yield "data: Unknown SPI device\n\n"
@@ -143,8 +144,13 @@ async def run_test(protocol: str, device: str):
                         yield f"data: LED fading test error: {e}\n\n"
                 elif device_lower == "servo motor":
                     from lib.PWM.servo import ServoMotor
-                    result = await run_in_threadpool(ServoMotor().activate_cli)
-                    yield f"data: {result if result is not None else 'No connections present'}\n\n"
+                    servo = ServoMotor()
+                    servo = ServoMotor()
+                    try:
+                        yield "data: Trying Servo Motor rotation...\n\n"   # Inform user before rotation begins
+                        await run_in_threadpool(servo.activate_gui)    # Run the rotation; no return expected
+                    except Exception as e:
+                        yield f"data: No connections present. Error: {e}\n\n"
                 elif device_lower == "rgb led":
                     from lib.PWM.rgb import RGBLED
                     try:
@@ -206,6 +212,17 @@ async def run_test(protocol: str, device: str):
 async def stop_test():
     global TEST_STOP_FLAG
     TEST_STOP_FLAG = True
+    # Stop OLED displays (for both I2C and SPI OLED) if any are active
+    try:
+        from lib.I2C.i2c_oled import I2C_OLED
+        I2C_OLED().clear_display()   # Assumes clear_display method is implemented
+    except Exception:
+        pass
+    try:
+        from lib.SPI.spi_oled import SPI_OLED
+        SPI_OLED().clear_display()   # Assumes clear_display method is implemented
+    except Exception:
+        pass
     return {"result": "Test stopped"}
 
 # New global variable to hold RS485 process
