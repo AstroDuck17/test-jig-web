@@ -250,8 +250,12 @@ async def stop_test():
 RS485_PROCESS = None
 
 @router.get("/run-rs485", response_class=StreamingResponse)
-async def run_rs485(request: Request, mode: str, baudRate: int, parity: str, slaveId: int = 1, registerAddress: int = 0, countMode: int = 1, dataType: str = "uint", stopbits: int = 1, bytesize: int = 8, scalingFactor: float = 1.0):
-    global RS485_PROCESS
+async def run_rs485(request: Request, mode: str, baudRate: int, parity: str, slaveId: int = 1, 
+                     registerAddress: int = 0, countMode: int = 1, dataType: str = "uint", 
+                     stopbits: int = 1, bytesize: int = 8, scalingFactor: float = 1.0):
+    global RS485_PROCESS, TEST_STOP_FLAG
+    # Reset stop flag for each new RS485 run
+    TEST_STOP_FLAG = False
     args = []
     if mode.lower() == "receive":
         args = ["python", "lib/RS485/rsReceive.py", 
@@ -272,25 +276,29 @@ async def run_rs485(request: Request, mode: str, baudRate: int, parity: str, sla
                 "--data_type", dataType,
                 "--stopbits", str(stopbits),
                 "--bytesize", str(bytesize)]
-        # scalingFactor is not needed for transmit
     else:
         return {"error": "Invalid mode."}
 
     RS485_PROCESS = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     
     async def event_generator():
-        while True:
+        global TEST_STOP_FLAG
+        while not TEST_STOP_FLAG:
             line = RS485_PROCESS.stdout.readline()
             if line:
                 yield f"data: {line}\n\n"
             elif RS485_PROCESS.poll() is not None:
                 break
             await asyncio.sleep(0.1)
+        # Close process if stop flag is set
+        if RS485_PROCESS and RS485_PROCESS.poll() is None:
+            RS485_PROCESS.terminate()
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 @router.post("/stop-rs485")
 async def stop_rs485():
-    global RS485_PROCESS
+    global RS485_PROCESS, TEST_STOP_FLAG
+    TEST_STOP_FLAG = True
     if RS485_PROCESS:
         RS485_PROCESS.terminate()
         RS485_PROCESS = None

@@ -31,10 +31,10 @@ def config(args):
         timeout=1
     )
     if not client.connect():
-        print("❌ Failed to open serial port. Check USB and permissions.")
+        print("❌ Failed to open serial port. Check USB and permissions.", flush=True)
         exit(1)
     else:
-        print("✅ Connected successfully.")
+        print("✅ Connected successfully.", flush=True)
     return client, slave_id
 
 def read_modbus_values(client, slave_id, register_address, scaling_factor=1.0):
@@ -42,7 +42,7 @@ def read_modbus_values(client, slave_id, register_address, scaling_factor=1.0):
         while True:
             rr = client.read_holding_registers(address=register_address, count=2, unit=slave_id)
             if rr.isError():
-                print(f"❌ Error while fetching data from register {register_address}")
+                print(f"❌ Error while fetching data from register {register_address}", flush=True)
             else:
                 regs = rr.registers
                 decoder = BinaryPayloadDecoder.fromRegisters(
@@ -51,10 +51,10 @@ def read_modbus_values(client, slave_id, register_address, scaling_factor=1.0):
                     wordorder=Endian.Little
                 )
                 value = round(decoder.decode_32bit_float() * scaling_factor, 3)
-                print(f"Register {register_address}: {value}")
+                print(f"Register {register_address}: {value}", flush=True)
             time.sleep(1)
     except KeyboardInterrupt:
-        print("\nExiting RS485 Receive Test.")
+        print("\nExiting RS485 Receive Test.", flush=True)
 
 if __name__ == "__main__":
     args = parse_args()
