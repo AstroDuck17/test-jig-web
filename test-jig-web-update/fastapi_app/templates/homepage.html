@@ -2,6 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Test Jig Homepage</title>
   <link rel="stylesheet" href="../static/style.css">
   <style>
@@ -10,57 +11,72 @@
       color: #ffffff;
       margin: 0;
       text-align: center;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    main.container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .main-sections {
       display: flex;
       justify-content: center;
       align-items: stretch;
-      gap: 40px;
-      margin: 60px auto 40px auto;
-      max-width: 900px;
+      gap: 60px;
+      width: 90%;
+      max-width: 1400px;
     }
     .section-card {
-      flex: 1 1 300px;
+      flex: 1 1 400px;
       background: linear-gradient(135deg, #232526 0%, #414345 100%);
-      border-radius: 16px;
-      box-shadow: 0 6px 24px rgba(0,0,0,0.4);
-      padding: 48px 32px;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      padding: 80px 48px;
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       transition: transform 0.2s, box-shadow 0.2s;
+      min-height: 400px;
     }
     .section-card:hover {
-      transform: translateY(-6px) scale(1.03);
-      box-shadow: 0 12px 32px rgba(138,43,226,0.25);
+      transform: translateY(-8px) scale(1.04);
+      box-shadow: 0 16px 48px rgba(138,43,226,0.35);
     }
     .section-title {
-      font-size: 2rem;
-      margin-bottom: 24px;
+      font-size: 3rem;
+      margin-bottom: 32px;
       color: #da70d6;
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
+      font-weight: 700;
     }
     .section-desc {
-      font-size: 1.1rem;
-      margin-bottom: 32px;
+      font-size: 1.4rem;
+      margin-bottom: 48px;
       color: #cccccc;
+      line-height: 1.6;
+      text-align: center;
     }
     .device-button {
       margin: 0;
-      padding: 16px 36px;
+      padding: 20px 48px;
       cursor: pointer;
       background: linear-gradient(135deg, #8a2be2, #da70d6);
       border: none;
-      border-radius: 8px;
+      border-radius: 12px;
       color: white;
-      font-size: 1.25rem;
+      font-size: 1.5rem;
       font-family: 'Helvetica', sans-serif;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.4);
       transition: all 0.3s ease;
+      font-weight: 600;
     }
     .device-button:hover {
-      transform: translateY(-2px) scale(1.04);
-      box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+      transform: translateY(-3px) scale(1.06);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.5);
       background: linear-gradient(135deg, #6a0dad, #8a2be2);
     }
     .header-flex {
@@ -80,6 +96,11 @@
       box-shadow: 0 2px 12px rgba(138,43,226,0.10);
       background: #232526;
       object-fit: contain;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .header-logo:hover {
+      transform: scale(1.05);
     }
     .header-title-centered {
       flex: 0 1 auto;
@@ -89,6 +110,11 @@
       font-weight: 600;
       letter-spacing: 1px;
       color: #fff;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .header-title-centered:hover {
+      color: #da70d6;
     }
     @media (max-width: 800px) {
       .main-sections {
@@ -105,8 +131,8 @@
 <body>
   <header>
     <div class="header-flex">
-      <img src="../static/city.png" alt="City" class="header-logo" />
-      <span class="header-title-centered">Test Jig Runner</span>
+      <img src="../static/city.png" alt="City" class="header-logo" onclick="location.href='./homepage.html'" />
+      <span class="header-title-centered" onclick="location.href='./homepage.html'">Test Jig Runner</span>
     </div>
   </header>
   <main class="container">

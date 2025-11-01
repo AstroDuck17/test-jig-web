@@ -2,6 +2,10 @@
     box-sizing: border-box; /* Apply border-box model globally */
 }
 
+html {
+    font-size: 16px; /* Base font size for rem calculations */
+}
+
 body {
     margin: 0;
     font-family: 'Roboto', sans-serif;
@@ -10,7 +14,8 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;  /* Ensure full viewport height */
-    font-size: 1.125rem; /* Increased base font size */
+    font-size: 1rem; /* Use rem for better scaling */
+    -webkit-text-size-adjust: 100%; /* Prevent text size adjustment on mobile */
 }
 
 header {
@@ -26,14 +31,17 @@ header {
     background-color: #1e1e1e; /* Dark container */
     width: 100%;         /* span full screen width */
     margin: 0;           /* remove side margins */
-    padding: 2rem;
-    border-radius: 8px;
+    padding: 0.5rem;
+    border-radius: 0;
     box-shadow: none; /* Removed shadow for uniform appearance */
 }
 
 /* New rule to allow main content to grow */
 main.container {
     flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 section {
@@ -182,36 +190,42 @@ footer {
     align-items: center;  /* changed from center */
 }
 
-/* Protocol bubble buttons: ensure same fixed width and centered text */
+/* Protocol bubble buttons: oval shape for better text fit */
 .protocol-bubble {
   border: 2px solid #8A2BE2;
-  border-radius: 50%;
+  border-radius: 35px;
   background-color: #8A2BE2;
   color: white;
   font-weight: bold;
-  padding: 12px 18px;
-  margin: 5px;
+  padding: 10px 16px;
+  margin: 5px auto;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  font-size: 1.25rem;
-  width: 30%;                 /* added to enforce uniform sizing */
-  text-align: center;          /* centered text */
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  min-width: 100px;
+  height: 50px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .protocol-bubble.active {
   background-color: #7A1DB4;
   color: white;
   font-weight: bold;
-  border: 3px solid gold;             /* Added border */
-  box-shadow: 0 0 10px rgba(255,215,0,0.8); /* Added glow effect */
-  transform: scale(1.1);              /* Slight enlarge effect */
+  border: 2px solid gold;
+  box-shadow: 0 0 10px rgba(255,215,0,0.9);
+  transform: scale(1.06);
 }
 
-/* Add rule for the test output scrollable box */
+/* Add rule for the test output scrollable box - overridden in specific pages */
 #testOutput {
-    height: 400px;
     overflow-y: auto;
-    /* Optional: add a border and padding */
     border: 1px solid #555;
     padding: 1rem;
     background-color: #2e2e2e;

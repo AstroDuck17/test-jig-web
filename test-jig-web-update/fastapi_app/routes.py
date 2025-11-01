@@ -252,7 +252,8 @@ RS485_PROCESS = None
 @router.get("/run-rs485", response_class=StreamingResponse)
 async def run_rs485(request: Request, mode: str, baudRate: int, parity: str, slaveId: int = 1, 
                      registerAddress: int = 0, countMode: int = 1, dataType: str = "uint", 
-                     stopbits: int = 1, bytesize: int = 8, scalingFactor: float = 1.0):
+                     stopbits: int = 1, bytesize: int = 8, scalingFactor: float = 1.0,
+                     timeout: int = 30, registerValue: float = 220.0):
     global RS485_PROCESS, TEST_STOP_FLAG
     # Reset stop flag for each new RS485 run
     TEST_STOP_FLAG = False
@@ -275,7 +276,9 @@ async def run_rs485(request: Request, mode: str, baudRate: int, parity: str, sla
                 "--count_mode", str(countMode),
                 "--data_type", dataType,
                 "--stopbits", str(stopbits),
-                "--bytesize", str(bytesize)]
+                "--bytesize", str(bytesize),
+                "--timeout", str(timeout),
+                "--register_value", str(registerValue)]
     else:
         return {"error": "Invalid mode."}
 

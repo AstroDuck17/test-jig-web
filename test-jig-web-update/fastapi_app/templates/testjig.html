@@ -2,26 +2,54 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Test Jig Runner</title>
   <link rel="stylesheet" href="../static/style.css">
   <style>
+    /* Fixed viewport layout */
+    html {
+      font-size: 16px;
+      -webkit-text-size-adjust: 100%;
+      -moz-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+    
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    
+    body {
+      display: flex;
+      flex-direction: column;
+      background-color: #121212;
+      color: #ffffff;
+    }
+    
     /* Dark theme and violet buttons */
-    body, .container {
+    .container {
       background-color: #121212;
       color: #ffffff;
       margin: 0;
       text-align: center;
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      font-size: 1.05rem;
     }
     /* Updated styles for the device buttons with violet shade */
     .device-button {
-      margin: 5px;
-      padding: 12px 24px;
+      margin: 3px;
+      padding: 10px 18px;
       cursor: pointer;
       background: linear-gradient(135deg, #8a2be2, #da70d6);
       border: none;
       border-radius: 8px;
       color: white;
-      font-size: 16px;
+      font-size: 15px;
       font-family: 'Helvetica', sans-serif;
       box-shadow: 0 4px 6px rgba(0,0,0,0.3);
       transition: all 0.3s ease;
@@ -32,21 +60,21 @@
     }
     .device-button.active {
       background: linear-gradient(135deg, #6a0dad, #8a2be2);
-      border: 3px solid gold;
-      transform: scale(1.05);
-      box-shadow: 0 8px 12px rgba(0,0,0,0.5);
+      border: 2px solid gold;
+      transform: scale(1.03);
+      box-shadow: 0 6px 10px rgba(0,0,0,0.5);
     }
     /* New styles for the pin connections table */
     .pin-table {
-      margin: 20px auto;
+      margin: 10px auto;
       border-collapse: collapse;
-      width: 80%;
-      font-size: 0.875rem;
+      width: 95%;
+      font-size: 0.9rem;
     }
     .pin-table th,
     .pin-table td {
       border: 1px solid #555;
-      padding: 10px;
+      padding: 7px 9px;
       text-align: center;
     }
     /* New CSS for the Run and Stop Test buttons */
@@ -55,12 +83,12 @@
       border: none;
       border-radius: 8px;
       color: #fff;
-      font-size: 18px;
-      padding: 12px 24px;
+      font-size: 16px;
+      padding: 10px 20px;
       cursor: pointer;
       box-shadow: 0 4px 6px rgba(0,0,0,0.3);
       transition: transform 0.2s, box-shadow 0.2s;
-      margin: 5px;
+      margin: 3px;
     }
     .run-test-button:hover {
       transform: translateY(-2px);
@@ -70,83 +98,120 @@
       transform: translateY(0);
       box-shadow: 0 4px 6px rgba(0,0,0,0.3);
     }
-    /* Updated main layout styles */
+    /* Updated main layout styles - Fixed height layout */
     #main-layout {
       display: flex;
-      flex-wrap: wrap;  /* allow wrapping */
       justify-content: space-between;
-      align-items: flex-start;
+      align-items: stretch;
       width: 100%;
-      /* Ensure full width and remove auto margins */
+      height: 100%;
       margin: 0;
+      gap: 8px;
+      padding: 8px;
+      box-sizing: border-box;
+      overflow: hidden;
     }
     /* Left section: protocol selection */
     #left-section {
-      flex: 1 1 100px;   /* flexible with a minimum width */
+      flex: 0 0 18%;
+      display: flex;
+      flex-direction: column;
       padding: 10px;
       box-shadow: 2px 0 5px rgba(0,0,0,0.3);
-      margin: 1px;
+      background-color: #1e1e1e;
+      border-radius: 8px;
+      overflow-y: auto;
     }
     /* Middle section: test output will span the area in the middle */
     #middle-section {
-      flex: 2 1 400px;   /* flexible with a minimum width */
+      flex: 1 1 48%;
+      display: flex;
+      flex-direction: column;
       padding: 10px;
       text-align: center;
-      margin: 1px;
+      background-color: #1e1e1e;
+      border-radius: 8px;
+      overflow: hidden;
     }
     /* Right section: device selection and pin connections */
     #right-section {
-      flex: 1 1 100px;   /* flexible with a minimum width */
+      flex: 0 0 22%;
       display: flex;
       flex-direction: column;
-      padding: 5px;
+      padding: 8px;
       box-shadow: -2px 0 5px rgba(0,0,0,0.3);
-      margin: 1px;
-      /* Added properties to avoid overflow */
+      background-color: #1e1e1e;
+      border-radius: 8px;
       box-sizing: border-box;
-      overflow-x: auto;
-      max-width: 100%;
+      overflow: hidden;
+      gap: 8px;
     }
     #device-selection-container,
     #pin-connection-container {
-      width: 100%; /* Force full width for inner containers */
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
     #device-selection-container {
-      flex: 1;
-      margin-bottom: 1px;
+      flex: 0 0 auto;
+      min-height: 120px;
     }
     #pin-connection-container {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      background-color: #2a2a2a;
+      border-radius: 6px;
+      padding: 8px;
+    }
+    #pin-connection-container h2 {
+      margin-top: 0;
+      font-size: 1.15rem;
+    }
+    #pinOutput {
+      overflow-y: auto;
       flex: 1;
+    }
+    #pinOutput table {
+      font-size: 0.9rem;
     }
     /* Flex container to place Run Test and Stop Test buttons side by side */
     .test-buttons {
       display: flex;
       gap: 10px;
       justify-content: center;
+      flex: 0 0 auto;
+      margin-top: 8px;
     }
     /* New scrollable output box for test results */
     #testOutput {
-      height: 400px;
+      flex: 1;
       overflow-y: auto;
+      margin: 0;
+      background: #2e2e2e;
+      color: #EEEEEE;
+      padding: 1rem;
+      border-radius: 4px;
+      border: 1px solid #555;
+      font-size: 1rem;
     }
-    /* Navigation bar styles - new glassy pill look */
+    /* Navigation bar styles - compact version */
     .nav-bar {
       display: flex;
       justify-content: flex-end;
-      gap: 18px;
-      margin-bottom: 12px;
-      margin-top: 10px;
-      padding-right: 36px;
+      gap: 12px;
+      margin: 0;
+      padding-right: 24px;
     }
     .nav-btn {
-      padding: 12px 34px;
-      font-size: 1.08rem;
+      padding: 8px 24px;
+      font-size: 0.95rem;
       border: 1.5px solid #a084e8;
       border-radius: 999px;
       background: rgba(40, 30, 60, 0.55);
       color: #e7e0fa;
       font-family: 'Segoe UI', 'Helvetica', sans-serif;
-      box-shadow: 0 2px 16px 0 rgba(138,43,226,0.10), 0 1.5px 0 #8a2be2 inset;
+      box-shadow: 0 2px 12px 0 rgba(138,43,226,0.10), 0 1px 0 #8a2be2 inset;
       cursor: pointer;
       transition: 
         background 0.18s, 
@@ -156,43 +221,70 @@
         transform 0.18s;
       backdrop-filter: blur(2.5px);
       outline: none;
-      letter-spacing: 0.7px;
+      letter-spacing: 0.5px;
       font-weight: 500;
     }
     .nav-btn:hover, .nav-btn:focus {
       background: linear-gradient(90deg, #8a2be2 0%, #da70d6 100%);
       color: #fff;
       border: 1.5px solid #fff;
-      box-shadow: 0 6px 24px rgba(138,43,226,0.18), 0 2px 0 #fff inset;
-      transform: translateY(-2px) scale(1.045);
+      box-shadow: 0 4px 16px rgba(138,43,226,0.18), 0 1px 0 #fff inset;
+      transform: translateY(-1px) scale(1.03);
     }
+    /* Compact header */
+    header {
+      flex: 0 0 auto;
+      padding: 0.5rem 0;
+    }
+    
     .header-flex {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 18px;
-      padding: 0 36px 0 18px;
+      gap: 12px;
+      padding: 0 24px 0 12px;
       margin-bottom: 0;
     }
     .header-logo {
-      height: 54px;
+      height: 40px;
       width: auto;
-      margin-right: 18px;
-      border-radius: 10px;
-      box-shadow: 0 2px 12px rgba(138,43,226,0.10);
+      margin-right: 12px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(138,43,226,0.10);
       background: #232526;
       object-fit: contain;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .header-logo:hover {
+      transform: scale(1.05);
+    }
+    .header-title {
+      cursor: pointer;
+      transition: color 0.2s;
+      font-size: 1.5rem;
+      margin: 0;
+    }
+    .header-title:hover {
+      color: #da70d6;
+    }
+    
+    /* Compact footer */
+    footer {
+      flex: 0 0 auto;
+      padding: 0.4rem;
+      font-size: 0.85rem;
     }
     /* Add style for device dropdown */
     .device-dropdown {
-      width: 80%;
-      padding: 12px;
-      font-size: 1.1rem;
+      width: 90%;
+      padding: 10px;
+      font-size: 1.05rem;
       border-radius: 8px;
       border: 1.5px solid #8A2BE2;
       background: #232526;
       color: #fff;
-      margin: 10px auto 0 auto;
+      margin: 8px auto 0 auto;
       display: block;
       font-family: 'Segoe UI', 'Helvetica', sans-serif;
       transition: border 0.2s;
@@ -201,15 +293,121 @@
       border: 1.5px solid #da70d6;
       outline: none;
     }
+    
+    /* Protocol selection adjustments */
+    #protocol-selection {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: center;
+      width: 100%;
+    }
+    
+    #protocol-selection .protocol-bubble {
+      flex-shrink: 0;
+    }
+    
+    #left-section h2,
+    #device-selection-container h2 {
+      font-size: 1.25rem;
+      margin: 0 0 10px 0;
+    }
+    /* Output header with action buttons */
+    .output-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      flex: 0 0 auto;
+    }
+    .output-header h2 {
+      font-size: 1.4rem;
+    }
+    .output-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .icon-button {
+      background: transparent;
+      border: 1px solid #8A2BE2;
+      border-radius: 6px;
+      color: #8A2BE2;
+      cursor: pointer;
+      padding: 6px 10px;
+      font-size: 1rem;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .icon-button:hover {
+      background: #8A2BE2;
+      color: white;
+      transform: scale(1.05);
+    }
+    /* Toggle button styles */
+    .toggle-test-button {
+      background: linear-gradient(135deg, #28a745, #20c997);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 16px;
+      padding: 10px 28px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      transition: transform 0.2s, box-shadow 0.2s, background 0.3s;
+      margin: 3px;
+      min-width: 140px;
+    }
+    .toggle-test-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 8px rgba(0,0,0,0.4);
+    }
+    .toggle-test-button.running {
+      background: linear-gradient(135deg, #ff416c, #ff4b2b);
+    }
+    .toggle-test-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    /* Settings info display */
+    .settings-info {
+      background-color: #2a2a2a;
+      border-radius: 6px;
+      padding: 0.8rem 1rem;
+      margin-bottom: 0.8rem;
+      border-left: 4px solid #8A2BE2;
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: opacity 0.3s, max-height 0.3s;
+    }
+    .settings-info.visible {
+      opacity: 1;
+      max-height: 200px;
+    }
+    .settings-info h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1rem;
+      color: #8A2BE2;
+    }
+    .settings-info p {
+      margin: 0.3rem 0;
+      font-size: 0.9rem;
+      color: #cccccc;
+    }
+    .settings-info strong {
+      color: #ffffff;
+    }
   </style>
 </head>
 <body>
   <header>
     <div class="header-flex">
-      <img src="../static/city.png" alt="City" class="header-logo" />
-      <h1 style="flex:1; text-align:left; margin:0;">Test Jig Runner</h1>
+      <img src="../static/city.png" alt="City" class="header-logo" onclick="location.href='./homepage.html'" />
+      <h1 style="flex:1; text-align:left; margin:0;" class="header-title" onclick="location.href='./homepage.html'">Test Jig Runner</h1>
       <div class="nav-bar">
-        <button onclick="location.href='./homepage.html'" class="nav-btn">Homepage</button>
         <button onclick="location.href='./rs485.html'" class="nav-btn">RS485</button>
       </div>
     </div>
@@ -232,16 +430,26 @@
       </div>
       <!-- Middle Section: Test Output -->
       <div id="middle-section">
-          <h2>Run Test</h2>
+          <div class="output-header">
+            <h2 style="margin: 0;">Test Output</h2>
+            <div class="output-actions">
+              <button class="icon-button" onclick="clearOutput()" title="Clear Output">
+                <span>🗑️</span>
+              </button>
+              <button class="icon-button" onclick="downloadLog()" title="Download Log">
+                <span>💾</span>
+              </button>
+            </div>
+          </div>
+          <!-- Settings Info Display -->
+          <div id="settingsInfo" class="settings-info">
+            <h3>Current Configuration</h3>
+            <p><strong>Protocol:</strong> <span id="displayProtocol">-</span> | <strong>Device:</strong> <span id="displayDevice">-</span></p>
+          </div>
           <pre id="testOutput"></pre>
           <div class="test-buttons">
-            <button class="run-test-button" onclick="runTest(selectedProtocol, selectedDevice)">Run Test</button>
-            <button class="run-test-button" onclick="stopTest()">Stop Test</button>
-            <button class="run-test-button" onclick="clearOutput()">Clear Output</button>
-            <!-- New Download Log button -->
-            <button class="run-test-button" onclick="downloadLog()">Download Log</button>
+            <button id="toggleTestButton" class="toggle-test-button" onclick="toggleTest()">Run Test</button>
           </div>
-          <!-- Changed: Added an id to the output container -->
       </div>
       <!-- Right Section: Top: Device Selection, Bottom: Pin Connections -->
       <div id="right-section">
@@ -264,6 +472,7 @@
     // Set default selected protocol and device to empty
     let selectedProtocol = "";
     let selectedDevice = "";
+    let isTestRunning = false;
 
     document.querySelectorAll('.protocol-bubble').forEach(button => {
       button.addEventListener('click', function() {
@@ -471,7 +680,29 @@
       return tableHTML;
     }
 
+    function toggleTest() {
+      if (isTestRunning) {
+        stopTest();
+      } else {
+        runTest(selectedProtocol, selectedDevice);
+      }
+    }
+
     function runTest(protocol, device) {
+        if (!protocol || !device) {
+          alert("Please select a protocol and device first!");
+          return;
+        }
+        
+        // Update configuration display
+        updateSettingsDisplay(protocol, device);
+        
+        // Update button state
+        isTestRunning = true;
+        const button = document.getElementById("toggleTestButton");
+        button.textContent = "Stop Test";
+        button.classList.add("running");
+        
         // Use EventSource to stream test output
         document.getElementById("testOutput").innerHTML = "";
         var eventSource = new EventSource(`/run-test/${encodeURIComponent(protocol)}/${encodeURIComponent(device)}`);
@@ -486,6 +717,10 @@
         eventSource.onerror = function(err) {
             console.error("EventSource error:", err);
             eventSource.close();
+            // Reset button state on error
+            isTestRunning = false;
+            button.textContent = "Run Test";
+            button.classList.remove("running");
         };
         window.currentEventSource = eventSource;
     }
@@ -501,6 +736,22 @@
             window.currentEventSource.close();
             window.currentEventSource = null;
         }
+        
+        // Reset button state
+        isTestRunning = false;
+        const button = document.getElementById("toggleTestButton");
+        button.textContent = "Run Test";
+        button.classList.remove("running");
+    }
+    
+    // Update settings display
+    function updateSettingsDisplay(protocol, device) {
+      document.getElementById('displayProtocol').textContent = protocol ? protocol.toUpperCase() : '-';
+      document.getElementById('displayDevice').textContent = device || '-';
+      
+      // Show the settings info
+      const settingsInfo = document.getElementById('settingsInfo');
+      settingsInfo.classList.add('visible');
     }
 
     function clearOutput() {
